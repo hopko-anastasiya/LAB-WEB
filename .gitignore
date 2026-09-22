@@ -1,0 +1,26 @@
+## .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ll]og/
+*.log
+TestResults/
+*.nupkg
+.idea/
+.vscode/
+
+## Local configuration and secrets
+appsettings.Local.json
+*.env
+.env
+
+## Uploaded files
+src/LabWeb/wwwroot/uploads/
