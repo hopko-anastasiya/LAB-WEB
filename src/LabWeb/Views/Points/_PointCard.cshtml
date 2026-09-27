@@ -1,0 +1,19 @@
+@model Point
+<div class="card h-100 point-card">
+    <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="card-img-top" alt="@Model.Name" loading="lazy" />
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+            <h3 class="h6 card-title mb-0">
+                <a asp-controller="Points" asp-action="Details" asp-route-id="@Model.Id" class="stretched-link text-decoration-none">@Model.Name</a>
+            </h3>
+            <partial name="_StatusBadge" model="Model.Status" />
+        </div>
+        <p class="small text-muted mb-2"><i class="bi bi-geo-alt"></i> @Model.Settlement, @Model.Address</p>
+        <div class="d-flex flex-wrap gap-1">
+            @foreach (var s in Model.Services.OrderBy(s => s.Name))
+            {
+                <span class="badge rounded-pill text-bg-light border" title="@s.Name"><i class="bi @s.Icon"></i> @s.Name</span>
+            }
+        </div>
+    </div>
+</div>

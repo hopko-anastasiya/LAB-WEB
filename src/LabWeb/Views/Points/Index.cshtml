@@ -1,0 +1,48 @@
+@model List<Point>
+@{
+    ViewData["Title"] = "Пункти";
+    var status = ViewData["status"] as PointStatus?;
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Пункти незламності</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Додати пункт</a>
+</div>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input name="q" value="@ViewData["q"]" class="form-control" placeholder="Назва, адреса або населений пункт" />
+    </div>
+    <div class="col-md-3">
+        <select name="serviceId" asp-items="ViewBag.Services" class="form-select">
+            <option value="">Усі послуги</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select">
+            <option value="">Будь-який статус</option>
+            @foreach (var s in Enum.GetValues<PointStatus>())
+            {
+                <option value="@s" selected="@(status == s)">@s.DisplayName()</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-grid">
+        <button class="btn btn-outline-primary"><i class="bi bi-search"></i> Знайти</button>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Пунктів за цими умовами не знайдено.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var p in Model)
+        {
+            <div class="col-sm-6 col-lg-4">
+                <partial name="_PointCard" model="p" />
+            </div>
+        }
+    </div>
+}

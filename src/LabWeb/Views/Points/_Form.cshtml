@@ -1,0 +1,91 @@
+@model PointFormViewModel
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<input type="hidden" asp-for="Point.Id" />
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <label asp-for="Point.Name" class="form-label"></label>
+        <input asp-for="Point.Name" class="form-control" />
+        <span asp-validation-for="Point.Name" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Point.Status" class="form-label"></label>
+        <select asp-for="Point.Status" asp-items="Html.GetEnumSelectList<PointStatus>()" class="form-select"></select>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="Point.Settlement" class="form-label"></label>
+        <input asp-for="Point.Settlement" class="form-control" />
+        <span asp-validation-for="Point.Settlement" class="text-danger small"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="Point.Address" class="form-label"></label>
+        <input asp-for="Point.Address" class="form-control" />
+        <span asp-validation-for="Point.Address" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="Point.Latitude" class="form-label"></label>
+        <input asp-for="Point.Latitude" class="form-control" step="any" />
+        <span asp-validation-for="Point.Latitude" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Point.Longitude" class="form-label"></label>
+        <input asp-for="Point.Longitude" class="form-control" step="any" />
+        <span asp-validation-for="Point.Longitude" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Point.Capacity" class="form-label"></label>
+        <input asp-for="Point.Capacity" class="form-control" />
+        <span asp-validation-for="Point.Capacity" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Point.Schedule" class="form-label"></label>
+        <input asp-for="Point.Schedule" class="form-control" placeholder="напр. Цілодобово" />
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Point.OperatorId" class="form-label"></label>
+        <select asp-for="Point.OperatorId" asp-items="Model.Operators" class="form-select">
+            <option value="">— оберіть оператора —</option>
+        </select>
+        <span asp-validation-for="Point.OperatorId" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Photo" class="form-label"></label>
+        <input asp-for="Photo" type="file" accept="image/jpeg,image/png,image/webp" class="form-control" data-preview="#photoPreview" />
+        <span asp-validation-for="Photo" class="text-danger small"></span>
+        <div class="d-flex align-items-center gap-3 mt-2">
+            <img id="photoPreview" src="@(Model.Point.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="rounded thumb" alt="Попередній перегляд" />
+            @if (!string.IsNullOrEmpty(Model.Point.PhotoPath))
+            {
+                <div class="form-check">
+                    <input asp-for="RemovePhoto" class="form-check-input" />
+                    <label asp-for="RemovePhoto" class="form-check-label"></label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Point.Description" class="form-label"></label>
+        <textarea asp-for="Point.Description" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Point.Description" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <label class="form-label d-block">Послуги</label>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2">
+            @foreach (var s in Model.AllServices)
+            {
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="SelectedServiceIds" value="@s.Id" id="svc-@s.Id"
+                               checked="@Model.SelectedServiceIds.Contains(s.Id)" />
+                        <label class="form-check-label" for="svc-@s.Id"><i class="bi @s.Icon"></i> @s.Name</label>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
