@@ -1,0 +1,23 @@
+@model Service
+@{
+    ViewData["Title"] = Model.Name;
+}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Послуги</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+<h1 class="h4"><i class="bi @Model.Icon text-primary"></i> @Model.Name</h1>
+<p class="text-muted">@Model.Description</p>
+<h2 class="h6 mt-4">Пункти з цією послугою (@Model.Points.Count)</h2>
+<ul class="list-group mb-3">
+    @foreach (var p in Model.Points.OrderBy(p => p.Name))
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a asp-controller="Points" asp-action="Details" asp-route-id="@p.Id">@p.Name</a>
+            <partial name="_StatusBadge" model="p.Status" />
+        </li>
+    }
+</ul>
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>

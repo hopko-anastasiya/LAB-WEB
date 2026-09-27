@@ -1,0 +1,14 @@
+@model Service
+@{
+    ViewData["Title"] = "Видалення послуги";
+}
+<h1 class="h3 text-danger">Видалити послугу?</h1>
+<div class="card card-body mb-3">
+    <h2 class="h5 mb-1"><i class="bi @Model.Icon"></i> @Model.Name</h2>
+    <p class="mb-0 text-muted">Послугу буде прибрано з пунктів: @Model.Points.Count</p>
+</div>
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Видалити</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Скасувати</a>
+</form>
