@@ -21,11 +21,11 @@ public class Point
     [Display(Name = "Населений пункт")]
     public string Settlement { get; set; } = string.Empty;
 
-    [Range(-90, 90)]
+    [Range(-90, 90, ErrorMessage = "Значення має бути від {1} до {2}")]
     [Display(Name = "Широта")]
     public double Latitude { get; set; }
 
-    [Range(-180, 180)]
+    [Range(-180, 180, ErrorMessage = "Значення має бути від {1} до {2}")]
     [Display(Name = "Довгота")]
     public double Longitude { get; set; }
 
@@ -37,7 +37,7 @@ public class Point
     [Display(Name = "Графік роботи")]
     public string? Schedule { get; set; }
 
-    [Range(0, 10000)]
+    [Range(0, 10000, ErrorMessage = "Значення має бути від {1} до {2}")]
     [Display(Name = "Місткість, осіб")]
     public int Capacity { get; set; }
 
@@ -50,6 +50,8 @@ public class Point
 
     [Display(Name = "Оператор")]
     public int OperatorId { get; set; }
+
+    [Display(Name = "Оператор")]
     public Operator? Operator { get; set; }
 
     [Display(Name = "Послуги")]
