@@ -2,10 +2,10 @@
 @{
     ViewData["Title"] = "Видалення звіту";
 }
-<h1 class="h3 text-danger">Видалити звіт?</h1>
-<div class="card card-body mb-3">
+<h1>Видалити звіт?</h1>
+<div class="panel mb-3">
     <p class="mb-1"><strong>@Model.Point?.Name</strong> <partial name="_StatusBadge" model="Model.Status" /></p>
-    <p class="mb-0 text-muted">@Model.CreatedAt.ToLocalString() · @Model.AuthorName</p>
+    <p class="mb-0 text-muted">@Model.CreatedAt.ToLocalString(), автор: @(Model.AuthorName ?? "не вказано")</p>
 </div>
 <form asp-action="Delete" method="post">
     <input type="hidden" asp-for="Id" />

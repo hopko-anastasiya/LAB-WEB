@@ -10,11 +10,11 @@
 </nav>
 <div class="row g-4">
     <div class="col-md-7">
-        <h1 class="h4">
+        <h1>
             <a asp-controller="Points" asp-action="Details" asp-route-id="@Model.PointId" class="text-decoration-none">@Model.Point?.Name</a>
             <partial name="_StatusBadge" model="Model.Status" />
         </h1>
-        <p class="text-muted">@Model.CreatedAt.ToLocalString() · @(Model.AuthorName ?? "анонімно")</p>
+        <p class="text-muted">@Model.CreatedAt.ToLocalString(), автор: @(Model.AuthorName ?? "не вказано")</p>
         <ul class="list-group mb-3">
             <li class="list-group-item d-flex justify-content-between">@Html.DisplayNameFor(m => m.HasElectricity) <partial name="_Flag" model="Model.HasElectricity" /></li>
             <li class="list-group-item d-flex justify-content-between">@Html.DisplayNameFor(m => m.HasInternet) <partial name="_Flag" model="Model.HasInternet" /></li>

@@ -1,6 +1,7 @@
 @model Point
 @{
     ViewData["Title"] = Model.Name;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
 }
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -9,63 +10,57 @@
     </ol>
 </nav>
 
-<div class="row g-4">
+<div class="row g-5">
     <div class="col-lg-5">
-        <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="img-fluid rounded shadow-sm w-100 point-photo" alt="@Model.Name" />
+        <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="point-photo" alt="@Model.Name" />
     </div>
     <div class="col-lg-7">
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <h1 class="h3 mb-0">@Model.Name</h1>
-            <partial name="_StatusBadge" model="Model.Status" />
-        </div>
-        <p class="text-muted"><i class="bi bi-geo-alt"></i> @Model.Settlement, @Model.Address</p>
+        <partial name="_StatusBadge" model="Model.Status" />
+        <h1 class="mt-2 mb-1">@Model.Name</h1>
+        <p class="text-muted mb-3">@Model.Settlement, @Model.Address</p>
         @if (!string.IsNullOrWhiteSpace(Model.Description))
         {
             <p>@Model.Description</p>
         }
-        <dl class="row">
-            <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Schedule)</dt>
-            <dd class="col-sm-8">@(Model.Schedule ?? "—")</dd>
-            <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Capacity)</dt>
-            <dd class="col-sm-8">@Model.Capacity</dd>
-            <dt class="col-sm-4">Координати</dt>
-            <dd class="col-sm-8"><code>@Model.Latitude.ToString("0.00000", System.Globalization.CultureInfo.InvariantCulture), @Model.Longitude.ToString("0.00000", System.Globalization.CultureInfo.InvariantCulture)</code></dd>
-            <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Operator)</dt>
-            <dd class="col-sm-8">
-                @if (Model.Operator is not null)
-                {
-                    <a asp-controller="Operators" asp-action="Details" asp-route-id="@Model.OperatorId">@Model.Operator.Name</a>
-                    <span class="text-muted">· <a href="tel:@Model.Operator.Phone">@Model.Operator.Phone</a></span>
-                }
-            </dd>
-            <dt class="col-sm-4">@Html.DisplayNameFor(m => m.UpdatedAt)</dt>
-            <dd class="col-sm-8">@Model.UpdatedAt.ToLocalString()</dd>
-        </dl>
 
-        <h2 class="h6">Послуги</h2>
-        <div class="d-flex flex-wrap gap-2 mb-3">
+        <div class="d-flex flex-wrap gap-2">
             @foreach (var s in Model.Services.OrderBy(s => s.Name))
             {
-                <span class="badge text-bg-light border fs-6 fw-normal"><i class="bi @s.Icon"></i> @s.Name</span>
-            }
-            @if (Model.Services.Count == 0)
-            {
-                <span class="text-muted">Не вказано</span>
+                <span class="chip"><i class="bi @s.Icon" aria-hidden="true"></i>@s.Name</span>
             }
         </div>
 
-        <div class="d-flex gap-2">
-            <a asp-controller="Reports" asp-action="Create" asp-route-pointId="@Model.Id" class="btn btn-warning"><i class="bi bi-clipboard-plus"></i> Новий звіт</a>
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
-            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Видалити</a>
+        <dl class="facts">
+            <dt>@Html.DisplayNameFor(m => m.Schedule)</dt>
+            <dd>@(Model.Schedule ?? "Не вказано")</dd>
+            <dt>@Html.DisplayNameFor(m => m.Capacity)</dt>
+            <dd>@Model.Capacity</dd>
+            <dt>@Html.DisplayNameFor(m => m.Operator)</dt>
+            <dd>
+                @if (Model.Operator is not null)
+                {
+                    <a asp-controller="Operators" asp-action="Details" asp-route-id="@Model.OperatorId">@Model.Operator.Name</a><br />
+                    <a href="tel:@Model.Operator.Phone">@Model.Operator.Phone</a>
+                }
+            </dd>
+            <dt>Координати</dt>
+            <dd>@Model.Latitude.ToString("0.00000", inv), @Model.Longitude.ToString("0.00000", inv)</dd>
+            <dt>@Html.DisplayNameFor(m => m.UpdatedAt)</dt>
+            <dd>@Model.UpdatedAt.ToLocalString()</dd>
+        </dl>
+
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="Reports" asp-action="Create" asp-route-pointId="@Model.Id" class="btn btn-primary">Додати звіт про стан</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Редагувати</a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Видалити</a>
         </div>
     </div>
 </div>
 
-<h2 class="h5 mt-5 mb-3">Останні звіти про стан</h2>
+<h2 class="mt-5 mb-3">Звіти про стан</h2>
 @if (Model.Reports.Count == 0)
 {
-    <p class="text-muted">Звітів ще немає.</p>
+    <p class="text-muted">Звітів ще немає. Перший звіт задасть статус пункту.</p>
 }
 else
 {
@@ -84,12 +79,12 @@ else
                         <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasInternet" /></td>
                         <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasHeating" /></td>
                         <td>@r.Occupancy</td>
-                        <td class="small">@r.Comment</td>
-                        <td><a asp-controller="Reports" asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-link">Детальніше</a></td>
+                        <td class="small text-muted">@r.Comment</td>
+                        <td class="text-end"><a asp-controller="Reports" asp-action="Details" asp-route-id="@r.Id">Відкрити</a></td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
-    <a asp-controller="Reports" asp-action="Index" asp-route-pointId="@Model.Id">Усі звіти пункту →</a>
+    <a asp-controller="Reports" asp-action="Index" asp-route-pointId="@Model.Id">Усі звіти цього пункту</a>
 }

@@ -2,25 +2,26 @@
 @{
     ViewData["Title"] = "Послуги";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Послуги</h1>
+<div class="page-head">
+    <h1>Послуги</h1>
     <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Додати послугу</a>
 </div>
-<div class="row g-3">
-    @foreach (var s in Model)
-    {
-        <div class="col-sm-6 col-lg-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h2 class="h6"><i class="bi @s.Icon fs-4 text-primary me-1"></i> <a asp-action="Details" asp-route-id="@s.Id" class="text-decoration-none">@s.Name</a></h2>
-                    <p class="small text-muted mb-2">@s.Description</p>
-                    <span class="badge text-bg-light border">Пунктів: @s.Points.Count</span>
+<div class="row">
+    <div class="col-lg-9">
+        @foreach (var s in Model)
+        {
+            <div class="service-tile">
+                <span class="icon"><i class="bi @s.Icon" aria-hidden="true"></i></span>
+                <div class="flex-grow-1">
+                    <h2><a asp-action="Details" asp-route-id="@s.Id">@s.Name</a></h2>
+                    <p>@s.Description</p>
+                    <p class="small mt-1">Є в пунктах: @s.Points.Count</p>
                 </div>
-                <div class="card-footer bg-transparent d-flex gap-2">
-                    <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
-                    <a asp-action="Delete" asp-route-id="@s.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                <div class="d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary" title="Редагувати" aria-label="Редагувати @s.Name"><i class="bi bi-pencil"></i></a>
+                    <a asp-action="Delete" asp-route-id="@s.Id" class="btn btn-sm btn-outline-danger" title="Видалити" aria-label="Видалити @s.Name"><i class="bi bi-trash"></i></a>
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 </div>

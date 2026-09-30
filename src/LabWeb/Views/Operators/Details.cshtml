@@ -8,8 +8,8 @@
         <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
     </ol>
 </nav>
-<div class="card card-body mb-4">
-    <h1 class="h4">@Model.Name</h1>
+<div class="panel mb-4">
+    <h1>@Model.Name</h1>
     @if (!string.IsNullOrEmpty(Model.Organization))
     {
         <p class="text-muted mb-2">@Model.Organization</p>
@@ -35,7 +35,7 @@
     @foreach (var p in Model.Points.OrderBy(p => p.Name))
     {
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><a asp-controller="Points" asp-action="Details" asp-route-id="@p.Id">@p.Name</a> <small class="text-muted">· @p.Settlement, @p.Address</small></span>
+            <span><a asp-controller="Points" asp-action="Details" asp-route-id="@p.Id">@p.Name</a> <small class="text-muted d-block">@p.Settlement, @p.Address</small></span>
             <partial name="_StatusBadge" model="p.Status" />
         </li>
     }
