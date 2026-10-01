@@ -1,7 +1,10 @@
 using System.Globalization;
+using System.Text.Encodings.Web;
+using System.Text.Json.Serialization;
 using LabWeb.Data;
 using LabWeb.Services;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +15,7 @@ builder.Configuration
 
 builder.Services.AddControllersWithViews(options =>
 {
+    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
     var m = options.ModelBindingMessageProvider;
     m.SetValueMustNotBeNullAccessor(_ => "Обов'язкове поле");
     m.SetMissingBindRequiredValueAccessor(_ => "Обов'язкове поле");
@@ -20,6 +24,30 @@ builder.Services.AddControllersWithViews(options =>
     m.SetValueIsInvalidAccessor(value => $"Некоректне значення «{value}»");
     m.SetValueMustBeANumberAccessor(_ => "Значення має бути числом");
     m.SetNonPropertyValueMustBeANumberAccessor(() => "Значення має бути числом");
+})
+.AddJsonOptions(o =>
+{
+    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    o.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+})
+.ConfigureApiBehaviorOptions(o =>
+{
+    var defaultFactory = o.InvalidModelStateResponseFactory;
+    o.InvalidModelStateResponseFactory = context =>
+    {
+        var result = defaultFactory(context);
+        if (result is ObjectResult { Value: ValidationProblemDetails problem })
+        {
+            problem.Title = "Дані запиту некоректні";
+            foreach (var key in problem.Errors.Keys.Where(k => k.StartsWith("$")).ToList())
+            {
+                problem.Errors.Remove(key);
+                var field = key.TrimStart('$', '.');
+                problem.Errors[field.Length > 0 ? field : "body"] = ["Некоректне значення або формат JSON"];
+            }
+        }
+        return result;
+    };
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
