@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabWeb.Api;
 
 [ApiController]
-[Produces("application/json")]
 public abstract class ApiControllerBase : ControllerBase
 {
     protected string? AbsoluteUrl(string? path) =>
