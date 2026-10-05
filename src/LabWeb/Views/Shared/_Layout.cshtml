@@ -27,6 +27,7 @@
                 <div class="collapse navbar-collapse" id="mainNav">
                     @{ var current = ViewContext.RouteData.Values["controller"]?.ToString(); }
                     <ul class="navbar-nav ms-auto gap-lg-2">
+                        <li class="nav-item"><a class="nav-link @(current == "Map" ? "active" : "")" asp-controller="Map" asp-action="Index">Мапа</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Points" ? "active" : "")" asp-controller="Points" asp-action="Index">Пункти</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">Звіти</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Operators" ? "active" : "")" asp-controller="Operators" asp-action="Index">Оператори</a></li>
@@ -37,7 +38,7 @@
         </nav>
     </header>
 
-    <main class="container py-4 flex-grow-1">
+    <main class="@(ViewData["FullWidth"] is true ? "main-full" : "container py-4") flex-grow-1">
         @if (TempData["Success"] is string ok)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
