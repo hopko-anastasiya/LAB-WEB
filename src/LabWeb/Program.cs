@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using LabWeb.Data;
+using LabWeb.Hubs;
 using LabWeb.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,12 +51,19 @@ builder.Services.AddControllersWithViews(options =>
     };
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddSingleton<PointChangesInterceptor>();
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"),
-        npgsql => npgsql.EnableRetryOnFailure()));
+            npgsql => npgsql.EnableRetryOnFailure())
+        .AddInterceptors(sp.GetRequiredService<PointChangesInterceptor>()));
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
+builder.Services.AddSignalR().AddJsonProtocol(o =>
+{
+    o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    o.PayloadSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+});
 
 var app = builder.Build();
 
@@ -90,6 +98,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<PointsHub>("/hubs/points");
 
 app.Run();
 
