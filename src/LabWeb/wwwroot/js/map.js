@@ -148,17 +148,57 @@
         render();
     }));
 
-    fetch(cfg.pointsUrl)
-        .then((r) => {
-            if (!r.ok) throw new Error(r.statusText);
-            return r.json();
-        })
-        .then((data) => {
-            data.forEach((p) => upsert(p));
-            const coords = data.map((p) => [p.latitude, p.longitude]);
-            if (coords.length) map.fitBounds(coords, { padding: [40, 40], maxZoom: 13 });
-        })
-        .catch(() => { summary.textContent = 'Не вдалося завантажити пункти. Оновіть сторінку.'; });
+    function load({ fit = false } = {}) {
+        return fetch(cfg.pointsUrl)
+            .then((r) => {
+                if (!r.ok) throw new Error(r.statusText);
+                return r.json();
+            })
+            .then((data) => {
+                const ids = new Set(data.map((p) => p.id));
+                [...points.keys()].filter((id) => !ids.has(id)).forEach(remove);
+                data.forEach((p) => upsert(p, { flicker: !fit }));
+                const coords = data.map((p) => [p.latitude, p.longitude]);
+                if (fit && coords.length) map.fitBounds(coords, { padding: [40, 40], maxZoom: 13 });
+            })
+            .catch(() => { summary.textContent = 'Не вдалося завантажити пункти. Оновіть сторінку.'; });
+    }
+
+    load({ fit: true });
+
+    const live = document.getElementById('mapLive');
+    const setLive = (state, text) => {
+        live.dataset.state = state;
+        live.textContent = text;
+    };
+
+    if (window.signalR) {
+        let viewers = 1;
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(cfg.hubUrl)
+            .withAutomaticReconnect()
+            .build();
+        const showOnline = () => setLive('online', `Оновлюється наживо. Зараз переглядають: ${viewers}`);
+
+        connection.on('pointChanged', (p) => upsert(p, { flicker: true }));
+        connection.on('pointRemoved', (id) => remove(id));
+        connection.on('viewers', (count) => {
+            viewers = count;
+            if (connection.state === signalR.HubConnectionState.Connected) showOnline();
+        });
+        connection.onreconnecting(() => setLive('offline', "Зв'язок з сервером втрачено, перепідключаємось…"));
+        connection.onreconnected(() => {
+            showOnline();
+            load();
+        });
+        connection.onclose(() => setLive('offline', 'Оновлення наживо вимкнені. Оновіть сторінку.'));
+
+        connection.start()
+            .then(showOnline)
+            .catch(() => setLive('offline', 'Оновлення наживо недоступні. Статуси можуть бути застарілими.'));
+    } else {
+        setLive('offline', 'Оновлення наживо недоступні. Статуси можуть бути застарілими.');
+    }
 
     window.pointsMap = { upsert, remove, render };
 })();
