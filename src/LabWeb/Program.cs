@@ -51,14 +51,15 @@ builder.Services.AddControllersWithViews(options =>
     };
 });
 
-builder.Services.AddSingleton<PointChangesInterceptor>();
+builder.Services.AddSingleton<DataChangesInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"),
             npgsql => npgsql.EnableRetryOnFailure())
-        .AddInterceptors(sp.GetRequiredService<PointChangesInterceptor>()));
+        .AddInterceptors(sp.GetRequiredService<DataChangesInterceptor>()));
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
+builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
 builder.Services.AddSignalR().AddJsonProtocol(o =>
 {
     o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
