@@ -167,5 +167,5 @@ public class ReportsController(AppDbContext db, IFileStorage files, PointStatusS
     }
 
     private async Task FillLookups(ReportFormViewModel vm) =>
-        vm.Points = new SelectList(await db.Points.OrderBy(p => p.Name).ToListAsync(), "Id", "Name", vm.Report.PointId);
+        vm.Points = new SelectList(await db.Points.Where(p => p.Id == vm.Report.PointId).ToListAsync(), "Id", "Name", vm.Report.PointId);
 }

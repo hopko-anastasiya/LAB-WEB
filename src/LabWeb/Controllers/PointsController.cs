@@ -184,7 +184,7 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
 
     private async Task FillLookups(PointFormViewModel vm)
     {
-        vm.Operators = new SelectList(await db.Operators.OrderBy(o => o.Name).ToListAsync(), "Id", "Name", vm.Point.OperatorId);
+        vm.Operators = new SelectList(await db.Operators.Where(o => o.Id == vm.Point.OperatorId).ToListAsync(), "Id", "Name", vm.Point.OperatorId);
         vm.AllServices = await db.Services.OrderBy(s => s.Name).ToListAsync();
     }
 }
