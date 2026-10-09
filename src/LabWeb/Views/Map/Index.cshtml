@@ -18,6 +18,8 @@
         </div>
 
         <div class="map-filters">
+            <input type="search" id="mapSearch" class="form-control form-control-sm" autocomplete="off"
+                   placeholder="Назва, адреса, послуга чи оператор" aria-label="Пошук пунктів" />
             <div class="filter-group" role="group" aria-label="Статус">
                 <button type="button" class="filter-chip" data-status="Working" aria-pressed="true"><span class="lamp lamp-working"></span>Працює</button>
                 <button type="button" class="filter-chip" data-status="Limited" aria-pressed="true"><span class="lamp lamp-limited"></span>З обмеженнями</button>
@@ -42,6 +44,7 @@
     <script>
         window.mapConfig = {
             pointsUrl: '@Url.Content("~/api/map/points")',
+            searchUrl: '@Url.Content("~/api/search")',
             hubUrl: '@Url.Content("~/hubs/points")',
             detailsUrl: '@Url.Action("Details", "Points", new { id = 0 })'.replace(/0$/, ''),
             services: @Json.Serialize(Model.ToDictionary(s => s.Id, s => new { s.Name, s.Icon }))
