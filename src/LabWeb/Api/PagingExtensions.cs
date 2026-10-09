@@ -23,6 +23,13 @@ public static class PagingExtensions
         return new PagedResult<TDto>(items.Select(map).ToList(), page.Skip, page.Limit, total, nextLink);
     }
 
+    public static PagedResult<T> ToPagedResult<T>(IReadOnlyList<T> items, PageQuery page, int total, HttpRequest request)
+    {
+        var nextSkip = page.Skip + items.Count;
+        var nextLink = items.Count > 0 && nextSkip < total ? BuildLink(request, nextSkip, page.Limit) : null;
+        return new PagedResult<T>(items, page.Skip, page.Limit, total, nextLink);
+    }
+
     private static string BuildLink(HttpRequest request, int skip, int limit)
     {
         var query = request.Query

@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using LabWeb.Data;
 using LabWeb.Hubs;
+using LabWeb.Search;
 using LabWeb.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
 builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
+builder.Services.AddSingleton<PointSearchIndex>();
+builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
+builder.Services.AddHostedService<SearchIndexInitializer>();
 builder.Services.AddSignalR().AddJsonProtocol(o =>
 {
     o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
