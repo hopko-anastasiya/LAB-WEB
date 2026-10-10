@@ -12,18 +12,6 @@ public static class SettlementImporter
 
     public static async Task ImportAsync(AppDbContext db, string contentRoot, CancellationToken ct = default)
     {
-        await db.Database.ExecuteSqlRawAsync("""
-            CREATE TABLE IF NOT EXISTS "Settlements" (
-                "Id" integer NOT NULL PRIMARY KEY,
-                "Name" character varying(120) NOT NULL,
-                "Region" character varying(120) NOT NULL,
-                "Latitude" double precision NOT NULL,
-                "Longitude" double precision NOT NULL,
-                "Population" integer NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS "IX_Settlements_Name" ON "Settlements" ("Name");
-            """, ct);
-
         if (await db.Settlements.AnyAsync(ct)) return;
 
         var path = Path.Combine(contentRoot, DataFile);
