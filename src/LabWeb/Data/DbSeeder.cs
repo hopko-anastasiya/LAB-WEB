@@ -1,3 +1,4 @@
+using LabWeb.Auth;
 using LabWeb.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,9 +17,12 @@ public static class DbSeeder
         var aid = new Service { Name = "Перша допомога", Icon = "bi-heart-pulse", Description = "Аптечка, черговий медик" };
         var generator = new Service { Name = "Генератор", Icon = "bi-lightning-charge", Description = "Автономне живлення" };
 
-        var op1 = new Operator { Name = "Олена Коваль", Organization = "ДСНС Київ", Phone = "+380671112233", Email = "koval@example.com", Telegram = "@olena_koval" };
-        var op2 = new Operator { Name = "Андрій Мельник", Organization = "КП «Київбудсервіс»", Phone = "+380502223344", Email = "melnyk@example.com" };
-        var op3 = new Operator { Name = "Ірина Бондар", Organization = "Львівська міська рада", Phone = "+380933334455", Telegram = "@ibondar" };
+        var kyiv = new Community { Name = "Київська міська громада", Plan = Plan.Premium, InviteCode = UserAccounts.NewInviteCode() };
+        var lviv = new Community { Name = "Львівська міська громада", Plan = Plan.Free, InviteCode = UserAccounts.NewInviteCode() };
+
+        var op1 = new Operator { Community = kyiv, Name = "Олена Коваль", Organization = "ДСНС Київ", Phone = "+380671112233", Email = "koval@example.com", Telegram = "@olena_koval" };
+        var op2 = new Operator { Community = kyiv, Name = "Андрій Мельник", Organization = "КП «Київбудсервіс»", Phone = "+380502223344", Email = "melnyk@example.com" };
+        var op3 = new Operator { Community = lviv, Name = "Ірина Бондар", Organization = "Львівська міська рада", Phone = "+380933334455", Telegram = "@ibondar" };
 
         var now = DateTime.UtcNow;
         var points = new List<Point>

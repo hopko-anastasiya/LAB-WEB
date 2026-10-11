@@ -30,6 +30,12 @@ public class Operator
     [Display(Name = "Telegram")]
     public string? Telegram { get; set; }
 
+    [Display(Name = "Громада")]
+    public int CommunityId { get; set; }
+
+    [Display(Name = "Громада")]
+    public Community? Community { get; set; }
+
     [Display(Name = "Пункти")]
     public ICollection<Point> Points { get; set; } = new List<Point>();
 }

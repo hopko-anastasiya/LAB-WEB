@@ -10,11 +10,37 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Service> Services => Set<Service>();
     public DbSet<StatusReport> StatusReports => Set<StatusReport>();
     public DbSet<Settlement> Settlements => Set<Settlement>();
+    public DbSet<Community> Communities => Set<Community>();
+    public DbSet<AppUser> Users => Set<AppUser>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.Entity<Community>(e =>
+        {
+            e.Property(x => x.Plan).HasConversion<string>().HasMaxLength(16);
+            e.HasIndex(x => x.InviteCode).IsUnique();
+        });
+
+        b.Entity<AppUser>(e =>
+        {
+            e.HasOne(x => x.Community)
+             .WithMany(c => c.Users)
+             .HasForeignKey(x => x.CommunityId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.Property(x => x.Role).HasConversion<string>().HasMaxLength(16);
+            e.HasIndex(x => x.GoogleId).IsUnique();
+            e.HasIndex(x => x.Email).IsUnique();
+            e.HasIndex(x => x.ApiTokenHash).IsUnique();
+        });
+
         b.Entity<Operator>(e =>
         {
+            e.HasOne(x => x.Community)
+             .WithMany(c => c.Operators)
+             .HasForeignKey(x => x.CommunityId)
+             .OnDelete(DeleteBehavior.Restrict);
+
             e.HasIndex(x => x.Phone);
         });
 
