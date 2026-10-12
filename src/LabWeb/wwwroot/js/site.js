@@ -14,3 +14,15 @@ document.addEventListener('input', (e) => {
     const icon = document.querySelector(input.dataset.iconPreview);
     if (icon) icon.className = 'bi ' + input.value.trim();
 });
+
+document.addEventListener('click', (e) => {
+    const button = e.target.closest('[data-copy]');
+    if (!button) return;
+    const source = document.querySelector(button.dataset.copy);
+    const text = source?.value ?? source?.textContent ?? '';
+    navigator.clipboard?.writeText(text.trim()).then(() => {
+        const label = button.textContent;
+        button.textContent = 'Скопійовано';
+        setTimeout(() => { button.textContent = label; }, 1500);
+    });
+});

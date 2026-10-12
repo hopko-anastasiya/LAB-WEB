@@ -1,0 +1,77 @@
+@model CurrentUser
+@{
+    ViewData["Title"] = "Профіль";
+    var user = Model.User!;
+    var token = TempData["Token"] as string;
+}
+<div class="page-head">
+    <h1>Профіль</h1>
+</div>
+
+<div class="row g-5">
+    <div class="col-lg-5">
+        <dl class="facts mt-0">
+            <dt>Ім'я</dt>
+            <dd>@user.Name</dd>
+            <dt>Email</dt>
+            <dd>@user.Email</dd>
+            <dt>Громада</dt>
+            <dd>
+                @if (Model.Community is { } community)
+                {
+                    <a asp-controller="Community" asp-action="Index">@community.Name</a><br />
+                    <span class="text-muted">@user.Role.DisplayName(), план @community.Plan.DisplayName()</span>
+                }
+                else
+                {
+                    <a asp-controller="Community" asp-action="Start">Приєднатися або створити</a>
+                }
+            </dd>
+            <dt>З нами з</dt>
+            <dd>@user.CreatedAt.ToLocalString("dd.MM.yyyy")</dd>
+        </dl>
+    </div>
+
+    <div class="col-lg-7">
+        <section class="panel">
+            <h2 class="h5 mb-2">Токен для API</h2>
+            <p class="text-muted">Читати API можна без токена. Щоб створювати й змінювати пункти, звіти та
+                операторів своєї громади, додавайте заголовок <code>Authorization: Bearer &lt;токен&gt;</code>.</p>
+
+            @if (token is not null)
+            {
+                <div class="token-once" role="status">
+                    <p class="mb-2">Скопіюйте токен зараз: після оновлення сторінки його вже не буде видно.</p>
+                    <div class="input-group">
+                        <input id="apiToken" class="form-control font-monospace" value="@token" readonly aria-label="API-токен" />
+                        <button class="btn btn-primary" type="button" data-copy="#apiToken">Копіювати</button>
+                    </div>
+                </div>
+            }
+            else if (user.ApiTokenHash is not null)
+            {
+                <p class="mb-3">Токен створено @(user.ApiTokenCreatedAt?.ToLocalString() ?? "раніше"). Повний токен ми не зберігаємо, лише його відбиток.</p>
+            }
+            else
+            {
+                <p class="mb-3">Токена ще немає.</p>
+            }
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <form asp-action="CreateToken" method="post">
+                    <button type="submit" class="btn btn-outline-primary">@(user.ApiTokenHash is null ? "Створити токен" : "Створити новий токен")</button>
+                </form>
+                @if (user.ApiTokenHash is not null)
+                {
+                    <form asp-action="RevokeToken" method="post">
+                        <button type="submit" class="btn btn-outline-danger">Відкликати</button>
+                    </form>
+                }
+            </div>
+            @if (user.ApiTokenHash is not null && token is null)
+            {
+                <p class="small text-muted mt-2 mb-0">Новий токен замінить старий.</p>
+            }
+        </section>
+    </div>
+</div>

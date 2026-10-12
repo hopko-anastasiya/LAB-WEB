@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Громада";
+    var returnUrl = ViewData["returnUrl"] as string;
+}
+<div class="page-head">
+    <h1>Оберіть громаду</h1>
+</div>
+<p class="lead-muted mb-4">Пункти, оператори та звіти належать громаді. Учасники бачать і змінюють лише
+    свої пункти, а мапа лишається спільною для всіх.</p>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <form asp-action="Join" method="post" class="panel h-100">
+            <h2 class="h5">Приєднатися за кодом</h2>
+            <p class="text-muted">Код дає адміністратор громади на її сторінці.</p>
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <label for="code" class="form-label">Код запрошення</label>
+            <input id="code" name="code" class="form-control invite-input mb-3" required maxlength="16"
+                   autocomplete="off" placeholder="Напр. K7QH2M9X" />
+            <button type="submit" class="btn btn-primary">Приєднатися</button>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <form asp-action="Create" method="post" class="panel h-100">
+            <h2 class="h5">Створити нову громаду</h2>
+            <p class="text-muted">Ви станете її адміністратором і зможете запрошувати інших.</p>
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <label for="name" class="form-label">Назва громади</label>
+            <input id="name" name="name" class="form-control mb-3" required minlength="3" maxlength="120"
+                   placeholder="Напр. Ірпінська міська громада" />
+            <button type="submit" class="btn btn-outline-primary">Створити громаду</button>
+        </form>
+    </div>
+</div>

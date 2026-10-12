@@ -1,0 +1,101 @@
+@model Community
+@{
+    ViewData["Title"] = Model.Name;
+    var isAdmin = CurrentUser.IsCommunityAdmin;
+    var points = Model.Operators.SelectMany(o => o.Points).ToList();
+}
+<div class="page-head">
+    <div>
+        <span class="plan-tag @(Model.Plan == Plan.Premium ? "plan-premium" : "")">План: @Model.Plan.DisplayName()</span>
+        <h1 class="mt-2">@Model.Name</h1>
+    </div>
+</div>
+
+<div class="stat-line mb-4">
+    <span><b>@points.Count</b>пунктів</span>
+    <span><b>@points.Count(p => p.Status == PointStatus.Working)</b>працюють</span>
+    <span><b>@Model.Operators.Count</b>операторів</span>
+    <span><b>@Model.Users.Count</b>учасників</span>
+</div>
+
+<div class="row g-5">
+    <div class="col-lg-7">
+        <h2 class="mb-3">Учасники</h2>
+        <ul class="member-list">
+            @foreach (var member in Model.Users)
+            {
+                var isMe = member.Id == CurrentUser.User!.Id;
+                <li>
+                    <span class="user-initial" aria-hidden="true">@member.Name[..1]</span>
+                    <div class="member-body">
+                        <span class="member-name">@member.Name @(isMe ? "(ви)" : "")</span>
+                        <span class="member-meta">@member.Email</span>
+                    </div>
+                    <span class="member-role @(member.Role == CommunityRole.Admin ? "is-admin" : "")">@member.Role.DisplayName()</span>
+                    @if (isAdmin && !isMe)
+                    {
+                        <div class="member-actions">
+                            <form asp-action="SetRole" method="post">
+                                <input type="hidden" name="userId" value="@member.Id" />
+                                @if (member.Role == CommunityRole.Admin)
+                                {
+                                    <button name="role" value="@CommunityRole.Member" class="btn btn-sm btn-outline-secondary">Зробити учасником</button>
+                                }
+                                else
+                                {
+                                    <button name="role" value="@CommunityRole.Admin" class="btn btn-sm btn-outline-secondary">Зробити адміністратором</button>
+                                }
+                            </form>
+                            <form asp-action="RemoveMember" method="post">
+                                <input type="hidden" name="userId" value="@member.Id" />
+                                <button class="btn btn-sm btn-outline-danger">Вилучити</button>
+                            </form>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+        <form asp-action="Leave" method="post" class="mt-3">
+            <button type="submit" class="btn btn-link px-0 text-muted">Вийти з громади</button>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        @if (isAdmin)
+        {
+            <section class="panel mb-4">
+                <h2 class="h5">Запросити учасників</h2>
+                <p class="text-muted">Надішліть код тим, хто має оновлювати пункти громади. Вони введуть його після входу.</p>
+                <div class="invite-code">
+                    <span id="inviteCode">@Model.InviteCode</span>
+                    <button type="button" class="btn btn-sm btn-outline-light" data-copy="#inviteCode">Копіювати</button>
+                </div>
+                <form asp-action="NewInviteCode" method="post" class="mt-2">
+                    <button type="submit" class="btn btn-link px-0 small">Створити новий код (старий перестане діяти)</button>
+                </form>
+            </section>
+        }
+        <section>
+            <h2 class="h5">Оператори громади</h2>
+            @if (Model.Operators.Count == 0)
+            {
+                <p class="text-muted">Операторів ще немає. <a asp-controller="Operators" asp-action="Create">Додайте першого</a>, щоб створювати пункти.</p>
+            }
+            else
+            {
+                <ul class="feed">
+                    @foreach (var op in Model.Operators.OrderBy(o => o.Name))
+                    {
+                        <li>
+                            <div class="feed-top">
+                                <a asp-controller="Operators" asp-action="Details" asp-route-id="@op.Id">@op.Name</a>
+                                <small>пунктів: @op.Points.Count</small>
+                            </div>
+                            <small>@op.Organization</small>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+</div>
