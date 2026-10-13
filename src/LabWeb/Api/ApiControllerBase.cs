@@ -1,3 +1,4 @@
+using LabWeb.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 
@@ -12,6 +13,11 @@ public abstract class ApiControllerBase : ControllerBase
 
     protected ObjectResult NotFoundProblem(string detail) =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Не знайдено", detail: detail);
+
+    protected CurrentUser CurrentUser => HttpContext.RequestServices.GetRequiredService<CurrentUser>();
+
+    protected ObjectResult ForbiddenProblem(string detail) =>
+        Problem(statusCode: StatusCodes.Status403Forbidden, title: "Доступ заборонено", detail: detail);
 
     protected ObjectResult ConflictProblem(string detail) =>
         Problem(statusCode: StatusCodes.Status409Conflict, title: "Конфлікт", detail: detail);

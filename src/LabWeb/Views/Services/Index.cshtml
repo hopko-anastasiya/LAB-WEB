@@ -4,7 +4,10 @@
 }
 <div class="page-head">
     <h1>Послуги</h1>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Додати послугу</a>
+    @if (CurrentUser.IsSystemAdmin)
+    {
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Додати послугу</a>
+    }
 </div>
 <div class="row">
     <div class="col-lg-9">
@@ -17,10 +20,13 @@
                     <p>@s.Description</p>
                     <p class="small mt-1">Є в пунктах: @s.Points.Count</p>
                 </div>
-                <div class="d-flex gap-2">
-                    <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary" title="Редагувати" aria-label="Редагувати @s.Name"><i class="bi bi-pencil"></i></a>
-                    <a asp-action="Delete" asp-route-id="@s.Id" class="btn btn-sm btn-outline-danger" title="Видалити" aria-label="Видалити @s.Name"><i class="bi bi-trash"></i></a>
-                </div>
+                @if (CurrentUser.IsSystemAdmin)
+                {
+                    <div class="d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary" title="Редагувати" aria-label="Редагувати @s.Name"><i class="bi bi-pencil"></i></a>
+                        <a asp-action="Delete" asp-route-id="@s.Id" class="btn btn-sm btn-outline-danger" title="Видалити" aria-label="Видалити @s.Name"><i class="bi bi-trash"></i></a>
+                    </div>
+                }
             </div>
         }
     </div>

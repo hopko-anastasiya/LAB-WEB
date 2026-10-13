@@ -6,7 +6,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class PointsApiTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
 
     [Fact]
     public async Task Create_returns_point_with_operator_and_services()

@@ -6,7 +6,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class PagingTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
 
     [Fact]
     public async Task List_returns_page_envelope_with_defaults()

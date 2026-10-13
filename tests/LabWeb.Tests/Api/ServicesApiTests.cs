@@ -6,7 +6,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class ServicesApiTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
 
     [Fact]
     public async Task Create_get_update_delete()

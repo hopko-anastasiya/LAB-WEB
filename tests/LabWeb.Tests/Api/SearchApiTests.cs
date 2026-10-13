@@ -6,7 +6,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class SearchApiTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
 
     private static string Code() => "k" + Guid.NewGuid().ToString("N")[..10];
 

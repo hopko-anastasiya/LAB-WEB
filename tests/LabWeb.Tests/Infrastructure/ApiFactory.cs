@@ -1,4 +1,7 @@
+using System.Net.Http.Headers;
+using LabWeb.Auth;
 using LabWeb.Data;
+using LabWeb.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -13,14 +16,56 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public string ConnectionString { get; } = BuildConnectionString();
 
+    public const string SystemAdminEmail = "admin@tests.local";
+
+    private readonly Lazy<string> _adminToken;
+
+    public ApiFactory() =>
+        _adminToken = new Lazy<string>(() => CreateUser(SystemAdminEmail, "Тестова громада", Plan.Premium).Token);
+
+    public HttpClient CreateAuthorizedClient() => CreateClientWithToken(_adminToken.Value);
+
+    public HttpClient CreateClientWithToken(string token)
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
+
+    public TestUser CreateUser(string? email = null, string? communityName = null, Plan plan = Plan.Free,
+        CommunityRole role = CommunityRole.Admin, int? communityId = null)
+    {
+        _ = Server;
+        using var db = CreateDbContext();
+        var token = "test_" + Guid.NewGuid().ToString("N");
+        var user = new AppUser
+        {
+            Email = email ?? $"user-{Guid.NewGuid():N}@tests.local",
+            Name = "Тестовий користувач",
+            Role = role,
+            ApiTokenHash = UserAccounts.HashToken(token),
+            ApiTokenCreatedAt = DateTime.UtcNow
+        };
+        if (communityId is not null)
+            user.CommunityId = communityId;
+        else if (communityName is not null)
+            user.Community = new Community { Name = communityName, Plan = plan, InviteCode = UserAccounts.NewInviteCode() };
+        db.Users.Add(user);
+        db.SaveChanges();
+        return new TestUser(user.Id, user.Email, user.CommunityId, token);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration((_, config) =>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Default"] = ConnectionString
+                ["ConnectionStrings:Default"] = ConnectionString,
+                ["Auth:SystemAdmins:0"] = SystemAdminEmail
             }));
+        builder.UseSetting("Auth:Google:ClientId", "test-google-client");
+        builder.UseSetting("Auth:Google:ClientSecret", "test-google-secret");
     }
 
     public async Task InitializeAsync()
@@ -66,6 +111,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         return Path.Combine(dir.FullName, "src", "LabWeb");
     }
 }
+
+public record TestUser(int Id, string Email, int? CommunityId, string Token);
 
 [CollectionDefinition(Name)]
 public class ApiCollection : ICollectionFixture<ApiFactory>

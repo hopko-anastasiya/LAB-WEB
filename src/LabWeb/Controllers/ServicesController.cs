@@ -1,5 +1,7 @@
+using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,9 +20,11 @@ public class ServicesController(AppDbContext db) : Controller
         return service is null ? NotFound() : View(service);
     }
 
+    [Authorize(Policy = Policies.SystemAdmin)]
     public IActionResult Create() => View(new Service());
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.SystemAdmin)]
     public async Task<IActionResult> Create([Bind("Name,Description,Icon")] Service service)
     {
         await EnsureUniqueName(service);
@@ -31,6 +35,7 @@ public class ServicesController(AppDbContext db) : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Policy = Policies.SystemAdmin)]
     public async Task<IActionResult> Edit(int id)
     {
         var service = await db.Services.FindAsync(id);
@@ -38,6 +43,7 @@ public class ServicesController(AppDbContext db) : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.SystemAdmin)]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Icon")] Service service)
     {
         if (id != service.Id) return NotFound();
@@ -53,6 +59,7 @@ public class ServicesController(AppDbContext db) : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Policy = Policies.SystemAdmin)]
     public async Task<IActionResult> Delete(int id)
     {
         var service = await db.Services.AsNoTracking()
@@ -62,6 +69,7 @@ public class ServicesController(AppDbContext db) : Controller
     }
 
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.SystemAdmin)]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var service = await db.Services.FindAsync(id);

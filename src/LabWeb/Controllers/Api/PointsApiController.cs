@@ -1,4 +1,6 @@
 using LabWeb.Api;
+using LabWeb.Auth;
+using Microsoft.AspNetCore.Authorization;
 using LabWeb.Api.Dtos;
 using LabWeb.Data;
 using LabWeb.Models;
@@ -45,11 +47,10 @@ public class PointsApiController(AppDbContext db, IFileStorage files) : ApiContr
         return point is null ? NotFoundProblem($"Пункт {id} не знайдено") : ToDto(point);
     }
 
-    [HttpPost]
+    [HttpPost, Authorize(Policy = Policies.ApiWriter)]
     public async Task<ActionResult<PointDto>> Create(PointInput input, CancellationToken ct)
     {
-        if (!await db.Operators.AnyAsync(o => o.Id == input.OperatorId, ct))
-            return FieldError(nameof(input.OperatorId), $"Оператора {input.OperatorId} не існує");
+        if (await CheckOperator(input.OperatorId, ct) is { } denied) return denied;
 
         var point = new Point();
         Apply(input, point);
@@ -61,13 +62,13 @@ public class PointsApiController(AppDbContext db, IFileStorage files) : ApiContr
         return CreatedAtAction(nameof(Get), new { id = point.Id }, ToDto(created));
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<ActionResult<PointDto>> Update(int id, PointInput input, CancellationToken ct)
     {
-        var point = await db.Points.Include(p => p.Services).FirstOrDefaultAsync(p => p.Id == id, ct);
+        var point = await db.Points.Include(p => p.Services).Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id, ct);
         if (point is null) return NotFoundProblem($"Пункт {id} не знайдено");
-        if (!await db.Operators.AnyAsync(o => o.Id == input.OperatorId, ct))
-            return FieldError(nameof(input.OperatorId), $"Оператора {input.OperatorId} не існує");
+        if (!CurrentUser.CanEdit(point.Operator?.CommunityId)) return ForbiddenProblem("Пункт належить іншій громаді");
+        if (await CheckOperator(input.OperatorId, ct) is { } denied) return denied;
 
         Apply(input, point);
         point.UpdatedAt = DateTime.UtcNow;
@@ -79,11 +80,12 @@ public class PointsApiController(AppDbContext db, IFileStorage files) : ApiContr
         return await Get(id, ct);
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        var point = await db.Points.Include(p => p.Reports).FirstOrDefaultAsync(p => p.Id == id, ct);
+        var point = await db.Points.Include(p => p.Reports).Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id, ct);
         if (point is null) return NotFoundProblem($"Пункт {id} не знайдено");
+        if (!CurrentUser.CanEdit(point.Operator?.CommunityId)) return ForbiddenProblem("Пункт належить іншій громаді");
 
         var photos = point.Reports.Select(r => r.PhotoPath).Append(point.PhotoPath).ToList();
         db.Points.Remove(point);
@@ -94,12 +96,13 @@ public class PointsApiController(AppDbContext db, IFileStorage files) : ApiContr
         return NoContent();
     }
 
-    [HttpPost("{id:int}/photo")]
+    [HttpPost("{id:int}/photo"), Authorize(Policy = Policies.ApiWriter)]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<PointDto>> UploadPhoto(int id, IFormFile? file, CancellationToken ct)
     {
-        var point = await db.Points.FindAsync([id], ct);
+        var point = await db.Points.Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id, ct);
         if (point is null) return NotFoundProblem($"Пункт {id} не знайдено");
+        if (!CurrentUser.CanEdit(point.Operator?.CommunityId)) return ForbiddenProblem("Пункт належить іншій громаді");
 
         if (file is null) return FieldError("file", "Додайте файл зображення у полі file");
         var error = files.Validate(file);
@@ -112,16 +115,25 @@ public class PointsApiController(AppDbContext db, IFileStorage files) : ApiContr
         return await Get(id, ct);
     }
 
-    [HttpDelete("{id:int}/photo")]
+    [HttpDelete("{id:int}/photo"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<IActionResult> DeletePhoto(int id, CancellationToken ct)
     {
-        var point = await db.Points.FindAsync([id], ct);
+        var point = await db.Points.Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id, ct);
         if (point is null) return NotFoundProblem($"Пункт {id} не знайдено");
+        if (!CurrentUser.CanEdit(point.Operator?.CommunityId)) return ForbiddenProblem("Пункт належить іншій громаді");
 
         await files.DeleteAsync(point.PhotoPath, ct);
         point.PhotoPath = null;
         await db.SaveChangesAsync(ct);
         return NoContent();
+    }
+
+    private async Task<ActionResult?> CheckOperator(int operatorId, CancellationToken ct)
+    {
+        var communityId = await db.Operators.Where(o => o.Id == operatorId).Select(o => (int?)o.CommunityId).FirstOrDefaultAsync(ct);
+        if (communityId is null)
+            return FieldError(nameof(PointInput.OperatorId), $"Оператора {operatorId} не існує");
+        return CurrentUser.CanEdit(communityId) ? null : ForbiddenProblem("Оператор належить іншій громаді");
     }
 
     private IQueryable<Point> WithIncludes() =>

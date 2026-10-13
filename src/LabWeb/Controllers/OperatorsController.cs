@@ -1,11 +1,13 @@
+using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabWeb.Controllers;
 
-public class OperatorsController(AppDbContext db) : Controller
+public class OperatorsController(AppDbContext db, CurrentUser currentUser) : Controller
 {
     public async Task<IActionResult> Index(string? q)
     {
@@ -28,25 +30,31 @@ public class OperatorsController(AppDbContext db) : Controller
         return op is null ? NotFound() : View(op);
     }
 
+    [Authorize(Policy = Policies.Member)]
     public IActionResult Create() => View(new Operator());
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Create([Bind("Name,Organization,Phone,Email,Telegram")] Operator op)
     {
         if (!ModelState.IsValid) return View(op);
+        op.CommunityId = currentUser.CommunityId!.Value;
         db.Add(op);
         await db.SaveChangesAsync();
         TempData["Success"] = "Оператора додано.";
         return RedirectToAction(nameof(Details), new { id = op.Id });
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Edit(int id)
     {
         var op = await db.Operators.FindAsync(id);
-        return op is null ? NotFound() : View(op);
+        if (op is null) return NotFound();
+        return currentUser.CanEdit(op.CommunityId) ? View(op) : Forbid();
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Organization,Phone,Email,Telegram")] Operator op)
     {
         if (id != op.Id) return NotFound();
@@ -54,26 +62,32 @@ public class OperatorsController(AppDbContext db) : Controller
 
         var existing = await db.Operators.FindAsync(id);
         if (existing is null) return NotFound();
+        if (!currentUser.CanEdit(existing.CommunityId)) return Forbid();
 
+        op.CommunityId = existing.CommunityId;
         db.Entry(existing).CurrentValues.SetValues(op);
         await db.SaveChangesAsync();
         TempData["Success"] = "Зміни збережено.";
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Delete(int id)
     {
         var op = await db.Operators.AsNoTracking()
             .Include(o => o.Points)
             .FirstOrDefaultAsync(o => o.Id == id);
-        return op is null ? NotFound() : View(op);
+        if (op is null) return NotFound();
+        return currentUser.CanEdit(op.CommunityId) ? View(op) : Forbid();
     }
 
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var op = await db.Operators.Include(o => o.Points).FirstOrDefaultAsync(o => o.Id == id);
         if (op is null) return NotFound();
+        if (!currentUser.CanEdit(op.CommunityId)) return Forbid();
 
         if (op.Points.Count > 0)
         {

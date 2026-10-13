@@ -25,8 +25,11 @@
                     <td>@o.Email</td>
                     <td class="text-center">@o.Points.Count</td>
                     <td class="text-nowrap text-end">
-                        <a asp-action="Edit" asp-route-id="@o.Id" class="btn btn-sm btn-outline-primary" title="Редагувати"><i class="bi bi-pencil"></i></a>
-                        <a asp-action="Delete" asp-route-id="@o.Id" class="btn btn-sm btn-outline-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                        @if (CurrentUser.CanEdit(o.CommunityId))
+                        {
+                            <a asp-action="Edit" asp-route-id="@o.Id" class="btn btn-sm btn-outline-primary" title="Редагувати"><i class="bi bi-pencil"></i></a>
+                            <a asp-action="Delete" asp-route-id="@o.Id" class="btn btn-sm btn-outline-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                        }
                     </td>
                 </tr>
             }

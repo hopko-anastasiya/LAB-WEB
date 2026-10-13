@@ -40,8 +40,11 @@ else
                         <td>@r.AuthorName</td>
                         <td class="text-nowrap">
                             <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary" title="Переглянути"><i class="bi bi-eye"></i></a>
-                            <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary" title="Редагувати"><i class="bi bi-pencil"></i></a>
-                            <a asp-action="Delete" asp-route-id="@r.Id" class="btn btn-sm btn-outline-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                            @if (CurrentUser.CanEdit(r.Point?.Operator?.CommunityId))
+                            {
+                                <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary" title="Редагувати"><i class="bi bi-pencil"></i></a>
+                                <a asp-action="Delete" asp-route-id="@r.Id" class="btn btn-sm btn-outline-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                            }
                         </td>
                     </tr>
                 }

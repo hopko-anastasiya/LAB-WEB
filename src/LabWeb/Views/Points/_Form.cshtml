@@ -60,7 +60,7 @@
     <div class="col-md-6">
         <label asp-for="Point.OperatorId" class="form-label"></label>
         <select asp-for="Point.OperatorId" asp-items="Model.Operators" class="form-select" data-autocomplete="lookup"
-                data-url="@Url.Content("~/api/lookup/operators")" data-placeholder="Ім'я, організація або Telegram">
+                data-url="@Url.Content("~/api/lookup/operators")?communityId=@CurrentUser.CommunityId" data-placeholder="Ім'я, організація або Telegram">
             <option value=""></option>
         </select>
         <span asp-validation-for="Point.OperatorId" class="text-danger small"></span>

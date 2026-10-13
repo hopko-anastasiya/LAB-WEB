@@ -20,4 +20,7 @@
         </li>
     }
 </ul>
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
+@if (CurrentUser.IsSystemAdmin)
+{
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
+}

@@ -1,4 +1,6 @@
 using LabWeb.Api;
+using LabWeb.Auth;
+using Microsoft.AspNetCore.Authorization;
 using LabWeb.Api.Dtos;
 using LabWeb.Data;
 using LabWeb.Models;
@@ -45,12 +47,13 @@ public class ReportsApiController(AppDbContext db, IFileStorage files, PointStat
         return report is null ? NotFoundProblem($"Звіт {id} не знайдено") : ToDto(report);
     }
 
-    [HttpPost("reports")]
+    [HttpPost("reports"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<ActionResult<ReportDto>> Create(ReportInput input, CancellationToken ct)
     {
-        var point = await db.Points.FindAsync([input.PointId], ct);
+        var point = await db.Points.Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == input.PointId, ct);
         if (point is null)
             return FieldError(nameof(input.PointId), $"Пункту {input.PointId} не існує");
+        if (!CurrentUser.CanEdit(point.Operator?.CommunityId)) return ForbiddenProblem("Пункт належить іншій громаді");
 
         var report = new StatusReport { CreatedAt = DateTime.UtcNow };
         Apply(input, report);
@@ -62,13 +65,15 @@ public class ReportsApiController(AppDbContext db, IFileStorage files, PointStat
         return CreatedAtAction(nameof(Get), new { id = report.Id }, dto);
     }
 
-    [HttpPut("reports/{id:int}")]
+    [HttpPut("reports/{id:int}"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<ActionResult<ReportDto>> Update(int id, ReportInput input, CancellationToken ct)
     {
         var report = await db.StatusReports.FindAsync([id], ct);
         if (report is null) return NotFoundProblem($"Звіт {id} не знайдено");
+        if (!await CanEditPoint(report.PointId, ct)) return ForbiddenProblem("Звіт належить іншій громаді");
         if (!await db.Points.AnyAsync(p => p.Id == input.PointId, ct))
             return FieldError(nameof(input.PointId), $"Пункту {input.PointId} не існує");
+        if (!await CanEditPoint(input.PointId, ct)) return ForbiddenProblem("Пункт належить іншій громаді");
 
         var oldPointId = report.PointId;
         Apply(input, report);
@@ -81,11 +86,12 @@ public class ReportsApiController(AppDbContext db, IFileStorage files, PointStat
         return await Get(id, ct);
     }
 
-    [HttpDelete("reports/{id:int}")]
+    [HttpDelete("reports/{id:int}"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
         var report = await db.StatusReports.FindAsync([id], ct);
         if (report is null) return NotFoundProblem($"Звіт {id} не знайдено");
+        if (!await CanEditPoint(report.PointId, ct)) return ForbiddenProblem("Звіт належить іншій громаді");
 
         db.StatusReports.Remove(report);
         await db.SaveChangesAsync(ct);
@@ -94,12 +100,13 @@ public class ReportsApiController(AppDbContext db, IFileStorage files, PointStat
         return NoContent();
     }
 
-    [HttpPost("reports/{id:int}/photo")]
+    [HttpPost("reports/{id:int}/photo"), Authorize(Policy = Policies.ApiWriter)]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ReportDto>> UploadPhoto(int id, IFormFile? file, CancellationToken ct)
     {
         var report = await db.StatusReports.FindAsync([id], ct);
         if (report is null) return NotFoundProblem($"Звіт {id} не знайдено");
+        if (!await CanEditPoint(report.PointId, ct)) return ForbiddenProblem("Звіт належить іншій громаді");
 
         if (file is null) return FieldError("file", "Додайте файл зображення у полі file");
         var error = files.Validate(file);
@@ -111,17 +118,21 @@ public class ReportsApiController(AppDbContext db, IFileStorage files, PointStat
         return await Get(id, ct);
     }
 
-    [HttpDelete("reports/{id:int}/photo")]
+    [HttpDelete("reports/{id:int}/photo"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<IActionResult> DeletePhoto(int id, CancellationToken ct)
     {
         var report = await db.StatusReports.FindAsync([id], ct);
         if (report is null) return NotFoundProblem($"Звіт {id} не знайдено");
+        if (!await CanEditPoint(report.PointId, ct)) return ForbiddenProblem("Звіт належить іншій громаді");
 
         await files.DeleteAsync(report.PhotoPath, ct);
         report.PhotoPath = null;
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
+
+    private async Task<bool> CanEditPoint(int pointId, CancellationToken ct) =>
+        CurrentUser.CanEdit(await db.Points.Where(p => p.Id == pointId).Select(p => (int?)p.Operator!.CommunityId).FirstOrDefaultAsync(ct));
 
     private static void Apply(ReportInput input, StatusReport report)
     {
