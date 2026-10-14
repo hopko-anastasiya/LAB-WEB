@@ -10,6 +10,7 @@ using LabWeb.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,10 @@ builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
 builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.AddAppAuth();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddFeatureManagement()
+    .AddFeatureFilter<PlanFilter>()
+    .UseDisabledFeaturesHandler(new RedirectToPremium());
 builder.Services.AddHostedService<SearchIndexInitializer>();
 builder.Services.AddSignalR().AddJsonProtocol(o =>
 {

@@ -132,6 +132,19 @@ public class CommunityController(AppDbContext db, CurrentUser currentUser) : Con
         return RedirectToAction("Index", "Home");
     }
 
+    public IActionResult Premium() => View(currentUser);
+
+    [Authorize(Policy = Policies.CommunityAdmin), HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePlan(Plan plan)
+    {
+        var community = await db.Communities.FirstAsync(c => c.Id == currentUser.CommunityId);
+        community.Plan = plan;
+        await db.SaveChangesAsync();
+        TempData["Success"] = plan == Plan.Premium
+            ? "Premium увімкнено. Аналітика громади вже доступна."
+            : "Громада перейшла на базовий план.";
+        return RedirectToAction(plan == Plan.Premium ? nameof(Index) : nameof(Premium));
+    }
 
     private Task<AppUser?> FindMember(int userId) =>
         db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.CommunityId == currentUser.CommunityId);

@@ -43,6 +43,12 @@
                                     {
                                         <li><span class="dropdown-item-text user-community">@community.Name</span></li>
                                         <li><a class="dropdown-item" asp-controller="Community" asp-action="Index">Моя громада</a></li>
+                                        <feature name="@Features.Analytics">
+                                            <li><a class="dropdown-item" asp-controller="Analytics" asp-action="Index">Аналітика</a></li>
+                                        </feature>
+                                        <feature name="@Features.Analytics" negate="true">
+                                            <li><a class="dropdown-item" asp-controller="Community" asp-action="Premium">Аналітика <span class="plan-tag">Premium</span></a></li>
+                                        </feature>
                                     }
                                     else
                                     {
