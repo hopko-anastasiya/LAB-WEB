@@ -17,6 +17,6 @@ RUN dotnet publish "src/LabWeb/LabWeb.csproj" -c $BUILD_CONFIGURATION -o /app/pu
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN mkdir -p /app/wwwroot/uploads && chown -R app:app /app/wwwroot/uploads
+RUN mkdir -p /app/wwwroot/uploads /app/keys && chown -R app:app /app/wwwroot/uploads /app/keys
 USER app
 ENTRYPOINT ["dotnet", "LabWeb.dll"]
