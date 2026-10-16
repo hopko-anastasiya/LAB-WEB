@@ -11,6 +11,7 @@
         slots[slot] = (Model.Skyline[i], i);
     }
     var index = 0;
+    var step = Math.Min(1.0, 18.0 / Math.Max(Model.Skyline.Count, 1));
 }
 <section class="hero">
     <h1>Де зараз є світло</h1>
@@ -28,7 +29,7 @@
                 {
                     if (slots.TryGetValue(index, out var s))
                     {
-                        <a class="win @(s.Point.Lit ? "lit" : "")" style="--i:@s.Order"
+                        <a class="win @(s.Point.Lit ? "lit" : "")" style="--i:@((s.Order * step).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))"
                            asp-controller="Points" asp-action="Details" asp-route-id="@s.Point.Id"
                            title="@s.Point.Name (@s.Point.Settlement): @(s.Point.Lit ? "є світло" : "світла немає")"
                            aria-label="@s.Point.Name, @(s.Point.Lit ? "є світло" : "світла немає")"></a>
