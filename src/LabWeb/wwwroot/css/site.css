@@ -673,3 +673,9 @@ a { text-underline-offset: .2em; }
 .bar.bar-overlay { background: var(--lamp); }
 .invite-input::placeholder { font-family: var(--font-text); letter-spacing: 0; text-transform: none; }
 .auth-box > .dev-login:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.chart-box { position: relative; height: 260px; }
+.chart-box.chart-tall { height: 320px; }
+.chart-table { margin-top: .75rem; font-size: .9rem; }
+.chart-table summary { color: var(--ink-muted); cursor: pointer; }
+.chart-table table { max-width: 24rem; margin-top: .5rem; }
