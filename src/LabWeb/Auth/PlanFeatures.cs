@@ -9,6 +9,7 @@ namespace LabWeb.Auth;
 public static class Features
 {
     public const string Analytics = "Analytics";
+    public const string SharedBoard = "SharedBoard";
 }
 
 [FilterAlias("Plan")]
@@ -16,11 +17,19 @@ public class PlanFilter(IHttpContextAccessor http) : IFeatureFilter
 {
     public Task<bool> EvaluateAsync(FeatureFilterEvaluationContext context)
     {
-        var plans = context.Parameters.GetSection("Plans").Get<Plan[]>() ?? [];
         var currentUser = http.HttpContext?.RequestServices.GetService<CurrentUser>();
-        var plan = currentUser?.Community?.Plan;
-        return Task.FromResult(plan is not null && plans.Contains(plan.Value));
+        return Task.FromResult(Allows(context, currentUser?.Community?.Plan));
     }
+
+    internal static bool Allows(FeatureFilterEvaluationContext context, Plan? plan) =>
+        plan is not null && (context.Parameters.GetSection("Plans").Get<Plan[]>() ?? []).Contains(plan.Value);
+}
+
+[FilterAlias("Plan")]
+public class ExplicitPlanFilter : IContextualFeatureFilter<Plan>
+{
+    public Task<bool> EvaluateAsync(FeatureFilterEvaluationContext context, Plan plan) =>
+        Task.FromResult(PlanFilter.Allows(context, plan));
 }
 
 public class RedirectToPremium : IDisabledFeaturesHandler

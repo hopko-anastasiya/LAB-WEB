@@ -73,6 +73,12 @@ public static class AuthSetup
                 o.AccessDeniedPath = "/Account/Denied";
                 o.ExpireTimeSpan = TimeSpan.FromDays(14);
                 o.SlidingExpiration = true;
+                o.Events.OnRedirectToLogin = ctx =>
+                {
+                    if (ctx.Request.Path.StartsWithSegments("/hubs")) ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    else ctx.Response.Redirect(ctx.RedirectUri);
+                    return Task.CompletedTask;
+                };
             })
             .AddScheme<AuthenticationSchemeOptions, ApiTokenHandler>(ApiTokenHandler.SchemeName, null);
 
