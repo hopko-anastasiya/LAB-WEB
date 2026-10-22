@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "Асистент";
+    var enabled = ViewData["enabled"] is true;
+}
+<div class="chat" id="chat" data-url="@Url.Action("Chat", "Assistant")">
+    @Html.AntiForgeryToken()
+    <div class="chat-head">
+        <h1>Асистент</h1>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="chatReset" hidden>Почати спочатку</button>
+    </div>
+
+    <div class="chat-log" id="chatLog" aria-live="polite">
+        <div class="chat-empty" id="chatEmpty">
+            <p class="lead-muted">Запитайте, куди піти зараз. Асистент шукає в даних застосунку і показує, що саме перевіряє.</p>
+            @if (enabled)
+            {
+                <div class="chat-suggestions">
+                    <button type="button" class="filter-chip">Де в Харкові працює пункт із генератором?</button>
+                    <button type="button" class="filter-chip">Де у Львові можна зарядити телефон і є Wi-Fi?</button>
+                    <button type="button" class="filter-chip">Який стан пунктів в Одесі?</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (enabled)
+    {
+        <form class="chat-form" id="chatForm">
+            <textarea id="chatInput" class="form-control" rows="1" maxlength="1000" required
+                      placeholder="Напр. де поруч зі мною у Вінниці є тепло?" aria-label="Ваше повідомлення"></textarea>
+            <button type="submit" class="btn btn-primary" id="chatSend">Надіслати</button>
+        </form>
+        <p class="chat-note">Повідомлення обробляє Google Gemini, тож не пишіть особисті дані. Статуси можуть застаріти: у нагальних випадках телефонуйте оператору.</p>
+    }
+    else
+    {
+        <p class="alert alert-info">Асистента ще не налаштовано на цьому сервері.</p>
+    }
+</div>
+
+@section Scripts {
+    @if (enabled)
+    {
+        <script src="~/js/assistant.js" asp-append-version="true"></script>
+    }
+}

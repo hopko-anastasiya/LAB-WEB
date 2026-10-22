@@ -1,11 +1,14 @@
 using System.Net.Http.Headers;
+using LabWeb.Assistant;
 using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace LabWeb.Tests.Infrastructure;
@@ -16,6 +19,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public string ConnectionString { get; } = BuildConnectionString();
 
+    public FakeGeminiClient Gemini { get; } = new();
+
     public const string SystemAdminEmail = "admin@tests.local";
 
     private readonly Lazy<string> _adminToken;
@@ -23,6 +28,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public ApiFactory()
     {
         Environment.SetEnvironmentVariable("Auth__Google__ClientId", "test-google-client");
+        Environment.SetEnvironmentVariable("Ai__Gemini__ApiKey", "test-gemini-key");
         Environment.SetEnvironmentVariable("Auth__Google__ClientSecret", "test-google-secret");
         _adminToken = new Lazy<string>(() => CreateUser(SystemAdminEmail, "Тестова громада", Plan.Premium).Token);
     }
@@ -68,6 +74,9 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 ["ConnectionStrings:Default"] = ConnectionString,
                 ["Auth:SystemAdmins:0"] = SystemAdminEmail
             }));
+        builder.ConfigureTestServices(services => {
+            services.AddSingleton<IGeminiClient>(Gemini);
+        });
     }
 
     public async Task InitializeAsync()

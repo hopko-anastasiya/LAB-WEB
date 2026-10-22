@@ -828,3 +828,40 @@ body:has(.point-contact) { padding-bottom: 4.75rem; }
 @media (max-width: 991.98px) {
     .landing-hero .point-photo { aspect-ratio: 16 / 9; max-height: 40vh; }
 }
+
+.chat { max-width: 48rem; margin: 0 auto; display: flex; flex-direction: column; min-height: calc(100vh - 12rem); }
+.chat-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.chat-head h1 { margin: 0; }
+.chat-log { flex: 1; display: flex; flex-direction: column; gap: 1.25rem; padding-bottom: 1.25rem; }
+.chat-suggestions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
+.chat-msg { max-width: 100%; overflow-wrap: anywhere; }
+.chat-user {
+    align-self: flex-end;
+    max-width: 80%;
+    padding: .55rem .85rem;
+    border-radius: .75rem;
+    background: var(--night-raised);
+    white-space: pre-wrap;
+}
+.chat-text a { color: var(--lamp); }
+.chat-wait { color: var(--ink-muted); font-size: .9rem; }
+.chat-error { color: var(--danger); margin: .25rem 0 0; }
+.chat-steps { margin-bottom: .6rem; font-size: .85rem; color: var(--ink-muted); }
+.chat-steps summary { cursor: pointer; }
+.chat-steps ol { list-style: none; margin: .4rem 0 0; padding: 0 0 0 .8rem; border-left: 2px solid var(--night-line); display: grid; gap: .35rem; }
+.step-thought { font-style: italic; white-space: pre-wrap; }
+.step-tool { color: var(--ink); }
+.step-tool small { display: block; color: var(--ink-muted); }
+.chat-form {
+    position: sticky;
+    bottom: .75rem;
+    display: flex;
+    gap: .5rem;
+    align-items: flex-end;
+    padding: .5rem;
+    border: 1px solid var(--night-line);
+    border-radius: .75rem;
+    background: var(--night-raised);
+}
+.chat-form textarea { resize: none; field-sizing: content; max-height: 8rem; }
+.chat-note { color: var(--ink-muted); font-size: .8rem; margin: .6rem 0 0; }
