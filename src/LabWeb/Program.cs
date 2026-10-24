@@ -70,6 +70,7 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
             npgsql => npgsql.EnableRetryOnFailure())
         .AddInterceptors(sp.GetRequiredService<DataChangesInterceptor>()));
 
+builder.Services.AddSingleton<UploadRules>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
 builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
