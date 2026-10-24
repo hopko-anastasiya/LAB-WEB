@@ -35,6 +35,10 @@
                         <li class="nav-item"><a class="nav-link @(current == "Assistant" ? "active" : "")" asp-controller="Assistant" asp-action="Index">Асистент</a></li>
                         @if (CurrentUser.IsSignedIn)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link @(current == "Notifications" ? "active" : "")" asp-controller="Notifications" asp-action="Index" aria-label="Сповіщення"><i class="bi bi-bell" aria-hidden="true"></i><span class="d-lg-none ms-2">Сповіщення</span>@if (CurrentUser.UnreadNotifications > 0)
+                                {<span class="nav-badge">@CurrentUser.UnreadNotifications</span>}</a>
+                            </li>
                             <li class="nav-item dropdown user-menu">
                                 <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="user-initial" aria-hidden="true">@CurrentUser.User!.Name[..1]</span>@CurrentUser.User.Name

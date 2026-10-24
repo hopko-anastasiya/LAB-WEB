@@ -8,6 +8,7 @@ namespace LabWeb.Auth;
 public class CurrentUser(IConfiguration config)
 {
     public AppUser? User { get; private set; }
+    public int UnreadNotifications { get; private set; }
 
     public bool IsSignedIn => User is not null;
     public int? CommunityId => User?.CommunityId;
@@ -26,6 +27,8 @@ public class CurrentUser(IConfiguration config)
     {
         if (!int.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id)) return;
         User = await db.Users.AsNoTracking().Include(u => u.Community).FirstOrDefaultAsync(u => u.Id == id, ct);
+        if (User is not null)
+            UnreadNotifications = await db.Notifications.CountAsync(n => n.UserId == id && n.ReadAt == null, ct);
     }
 }
 

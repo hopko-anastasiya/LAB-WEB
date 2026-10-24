@@ -1,0 +1,70 @@
+@model List<Notification>
+@{
+    ViewData["Title"] = "Сповіщення";
+    var subscriptions = (List<PointSubscription>)ViewBag.Subscriptions;
+}
+<div class="page-head">
+    <h1>Сповіщення</h1>
+    @if (Model.Any(n => n.ReadAt is null))
+    {
+        <form asp-action="MarkRead" method="post">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Позначити прочитаними</button>
+        </form>
+    }
+</div>
+
+<div class="row g-5">
+    <section class="col-lg-8">
+        @if (Model.Count == 0)
+        {
+            <p class="text-muted">Сповіщень ще немає. Вони з'являться, коли зміниться статус пункту, за яким ви стежите.</p>
+        }
+        else
+        {
+            <ul class="notice-list">
+                @foreach (var n in Model)
+                {
+                    <li class="@(n.ReadAt is null ? "is-new" : "")">
+                        <div>
+                            @if (n.PointId is not null)
+                            {
+                                <a asp-controller="Points" asp-action="Details" asp-route-id="@n.PointId">@n.PointName</a>
+                            }
+                            else
+                            {
+                                <span>@n.PointName</span>
+                            }
+                            <small>@n.ChangedAt.ToLocalString()</small>
+                        </div>
+                        <div class="notice-status">
+                            <span class="text-muted">було: @n.OldStatus.DisplayName()</span>
+                            <partial name="_StatusBadge" model="n.NewStatus" />
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="col-lg-4">
+        <h2 class="mb-3">Ви стежите</h2>
+        @if (subscriptions.Count == 0)
+        {
+            <p class="text-muted">Відкрийте сторінку пункту і натисніть «Стежити за пунктом».</p>
+        }
+        else
+        {
+            <ul class="feed">
+                @foreach (var s in subscriptions)
+                {
+                    <li>
+                        <div class="feed-top">
+                            <a asp-controller="Points" asp-action="Details" asp-route-id="@s.PointId">@s.Point?.Name</a>
+                        </div>
+                        <small>@s.Point?.Settlement</small>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>
