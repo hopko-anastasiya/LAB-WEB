@@ -2,6 +2,13 @@ namespace LabWeb.Services;
 
 public class UploadRules
 {
+    private static readonly byte[][] Signatures =
+    [
+        [0xFF, 0xD8, 0xFF],
+        [0x89, 0x50, 0x4E, 0x47],
+        [0x52, 0x49, 0x46, 0x46]
+    ];
+
     private readonly long _maxBytes;
     private readonly HashSet<string> _allowed;
 
@@ -24,6 +31,16 @@ public class UploadRules
             return $"Дозволені формати: {string.Join(", ", _allowed)}.";
         if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             return "Файл має бути зображенням.";
+        if (!HasImageSignature(file))
+            return "Вміст файлу не схожий на зображення JPEG, PNG або WebP.";
         return null;
+    }
+
+    private static bool HasImageSignature(IFormFile file)
+    {
+        var header = new byte[4];
+        using var stream = file.OpenReadStream();
+        if (stream.ReadAtLeast(header, 4, throwOnEndOfStream: false) < 4) return false;
+        return Signatures.Any(s => header.AsSpan().StartsWith(s));
     }
 }
