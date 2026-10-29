@@ -1,0 +1,24 @@
+@model Service
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<input type="hidden" asp-for="Id" />
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Icon" class="form-label"></label>
+        <div class="input-group">
+            <span class="input-group-text"><i id="iconPreview" class="bi @Model.Icon"></i></span>
+            <input asp-for="Icon" class="form-control" data-icon-preview="#iconPreview" />
+        </div>
+        <div class="form-text">Назва з <a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener">Bootstrap Icons</a>, напр. <code>bi-wifi</code></div>
+        <span asp-validation-for="Icon" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+        <span asp-validation-for="Description" class="text-danger small"></span>
+    </div>
+</div>
