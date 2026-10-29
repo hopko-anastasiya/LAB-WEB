@@ -1,0 +1,14 @@
+@model StatusReport
+@{
+    ViewData["Title"] = "Видалення звіту";
+}
+<h1 class="h3 text-danger">Видалити звіт?</h1>
+<div class="card card-body mb-3">
+    <p class="mb-1"><strong>@Model.Point?.Name</strong> <partial name="_StatusBadge" model="Model.Status" /></p>
+    <p class="mb-0 text-muted">@Model.CreatedAt.ToLocalString() · @Model.AuthorName</p>
+</div>
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Видалити</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Скасувати</a>
+</form>

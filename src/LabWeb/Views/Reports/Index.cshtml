@@ -1,0 +1,51 @@
+@model List<StatusReport>
+@{
+    ViewData["Title"] = "Звіти про стан";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Звіти про стан</h1>
+    <a asp-action="Create" asp-route-pointId="@ViewData["pointId"]" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Новий звіт</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <select name="pointId" asp-items="ViewBag.Points" class="form-select" onchange="this.form.submit()">
+            <option value="">Усі пункти</option>
+        </select>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">Звітів немає.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr><th>Час</th><th>Пункт</th><th>Статус</th><th class="text-center">Світло</th><th class="text-center">Зв'язок</th><th class="text-center">Тепло</th><th>Людей</th><th>Автор</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="text-nowrap">@r.CreatedAt.ToLocalString()</td>
+                        <td><a asp-controller="Points" asp-action="Details" asp-route-id="@r.PointId">@r.Point?.Name</a></td>
+                        <td><partial name="_StatusBadge" model="r.Status" /></td>
+                        <td class="text-center"><partial name="_Flag" model="r.HasElectricity" /></td>
+                        <td class="text-center"><partial name="_Flag" model="r.HasInternet" /></td>
+                        <td class="text-center"><partial name="_Flag" model="r.HasHeating" /></td>
+                        <td>@r.Occupancy</td>
+                        <td>@r.AuthorName</td>
+                        <td class="text-nowrap">
+                            <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary" title="Переглянути"><i class="bi bi-eye"></i></a>
+                            <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary" title="Редагувати"><i class="bi bi-pencil"></i></a>
+                            <a asp-action="Delete" asp-route-id="@r.Id" class="btn btn-sm btn-outline-danger" title="Видалити"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
