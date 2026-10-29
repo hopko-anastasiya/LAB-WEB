@@ -8,6 +8,8 @@ public class StatusReport
 
     [Display(Name = "Пункт")]
     public int PointId { get; set; }
+
+    [Display(Name = "Пункт")]
     public Point? Point { get; set; }
 
     [Display(Name = "Статус")]
@@ -22,7 +24,7 @@ public class StatusReport
     [Display(Name = "Є опалення")]
     public bool HasHeating { get; set; }
 
-    [Range(0, 10000)]
+    [Range(0, 10000, ErrorMessage = "Значення має бути від {1} до {2}")]
     [Display(Name = "Людей у пункті")]
     public int Occupancy { get; set; }
 

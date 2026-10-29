@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
   <rect width="400" height="300" fill="#e9eef3"/>
-  <g fill="none" stroke="#9aaabb" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M150 210 L200 150 L250 210 Z"/>
-    <path d="M205 95 L180 140 L205 140 L190 180"/>
+  <g fill="none" stroke="#a3b1c0" stroke-width="8" stroke-linejoin="round">
+    <rect x="150" y="105" width="100" height="74" rx="8"/>
+    <circle cx="200" cy="142" r="20"/>
+    <path d="M178 105 l8 -14 h28 l8 14"/>
   </g>
-  <text x="200" y="250" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#7d8fa3" text-anchor="middle">Фото відсутнє</text>
+  <text x="200" y="225" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#7d8fa3" text-anchor="middle">Фото відсутнє</text>
 </svg>

@@ -10,7 +10,17 @@ builder.Configuration
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    var m = options.ModelBindingMessageProvider;
+    m.SetValueMustNotBeNullAccessor(_ => "Обов'язкове поле");
+    m.SetMissingBindRequiredValueAccessor(_ => "Обов'язкове поле");
+    m.SetAttemptedValueIsInvalidAccessor((value, _) => $"Некоректне значення «{value}»");
+    m.SetNonPropertyAttemptedValueIsInvalidAccessor(value => $"Некоректне значення «{value}»");
+    m.SetValueIsInvalidAccessor(value => $"Некоректне значення «{value}»");
+    m.SetValueMustBeANumberAccessor(_ => "Значення має бути числом");
+    m.SetNonPropertyValueMustBeANumberAccessor(() => "Значення має бути числом");
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
