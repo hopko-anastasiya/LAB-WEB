@@ -1,0 +1,13 @@
+@model Operator
+@{
+    ViewData["Title"] = "Новий оператор";
+}
+<h1 class="h3 mb-4">Новий оператор</h1>
+<form asp-action="Create" method="post" class="card card-body">
+    <partial name="_Form" model="Model" />
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Створити</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Скасувати</a>
+    </div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,24 @@
+@model Operator
+@{
+    ViewData["Title"] = "Видалення оператора";
+}
+<h1 class="h3 text-danger">Видалити оператора?</h1>
+<div class="card card-body mb-3">
+    <h2 class="h5 mb-1">@Model.Name</h2>
+    <p class="mb-0 text-muted">@Model.Organization · @Model.Phone</p>
+</div>
+@if (Model.Points.Count > 0)
+{
+    <div class="alert alert-warning">
+        За оператором закріплено пунктів: <strong>@Model.Points.Count</strong>. Спершу призначте їм іншого оператора.
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Назад</a>
+}
+else
+{
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Видалити</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Скасувати</a>
+    </form>
+}
