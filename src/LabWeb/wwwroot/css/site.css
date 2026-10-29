@@ -361,3 +361,11 @@ a { text-underline-offset: .2em; }
 .facts a { color: var(--ink); text-decoration-color: var(--night-line); }
 .table a:not(.btn):hover,
 .facts a:hover { color: var(--lamp); text-decoration-color: currentColor; }
+
+@media (max-width: 575.98px) {
+    .hero { padding-top: 1.5rem; }
+    .skyline { gap: 3px; padding: 0; }
+    .building { gap: 2px; padding: 3px; }
+    .win { border-radius: 1px; }
+    a.win.lit { box-shadow: 0 0 .4rem rgba(245, 184, 65, .6); }
+}
