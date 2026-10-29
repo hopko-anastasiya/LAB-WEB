@@ -1,0 +1,19 @@
+@model Point
+@{
+    ViewData["Title"] = "Видалення пункту";
+}
+<h1 class="h3 text-danger">Видалити пункт?</h1>
+<div class="card card-body mb-3">
+    <h2 class="h5">@Model.Name</h2>
+    <p class="mb-1 text-muted">@Model.Settlement, @Model.Address</p>
+    <p class="mb-0">Оператор: @Model.Operator?.Name</p>
+</div>
+@if (Model.Reports.Count > 0)
+{
+    <div class="alert alert-warning">Разом із пунктом буде видалено звітів: <strong>@Model.Reports.Count</strong>.</div>
+}
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Видалити</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Скасувати</a>
+</form>
