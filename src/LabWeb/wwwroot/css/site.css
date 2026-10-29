@@ -1,0 +1,42 @@
+:root {
+    --brand: #1f3b57;
+    --brand-accent: #ffc107;
+}
+
+.bg-brand { background-color: var(--brand); }
+
+.hero {
+    color: #fff;
+    background:
+        radial-gradient(circle at 85% 20%, rgba(255, 193, 7, .35), transparent 40%),
+        linear-gradient(135deg, var(--brand), #2c5d86);
+}
+
+.stat .stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.point-card .card-img-top {
+    height: 160px;
+    object-fit: cover;
+    background: #e9eef3;
+}
+
+.point-card { transition: transform .15s ease, box-shadow .15s ease; }
+.point-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .08); }
+
+.point-photo {
+    max-height: 360px;
+    object-fit: cover;
+    background: #e9eef3;
+}
+
+.thumb {
+    width: 96px;
+    height: 72px;
+    object-fit: cover;
+    background: #e9eef3;
+    border: 1px solid #dee2e6;
+}
