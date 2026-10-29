@@ -3,22 +3,22 @@
     ViewData["Title"] = "Пункти";
     var status = ViewData["status"] as PointStatus?;
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Пункти незламності</h1>
+<div class="page-head">
+    <h1>Пункти незламності</h1>
     <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Додати пункт</a>
 </div>
 
 <form method="get" class="row g-2 mb-4">
     <div class="col-md-5">
-        <input name="q" value="@ViewData["q"]" class="form-control" placeholder="Назва, адреса або населений пункт" />
+        <input name="q" value="@ViewData["q"]" class="form-control" placeholder="Назва, адреса або населений пункт" aria-label="Пошук" />
     </div>
     <div class="col-md-3">
-        <select name="serviceId" asp-items="ViewBag.Services" class="form-select">
+        <select name="serviceId" asp-items="ViewBag.Services" class="form-select" aria-label="Послуга">
             <option value="">Усі послуги</option>
         </select>
     </div>
     <div class="col-md-2">
-        <select name="status" class="form-select">
+        <select name="status" class="form-select" aria-label="Статус">
             <option value="">Будь-який статус</option>
             @foreach (var s in Enum.GetValues<PointStatus>())
             {
@@ -27,22 +27,20 @@
         </select>
     </div>
     <div class="col-md-2 d-grid">
-        <button class="btn btn-outline-primary"><i class="bi bi-search"></i> Знайти</button>
+        <button class="btn btn-outline-primary">Знайти</button>
     </div>
 </form>
 
 @if (Model.Count == 0)
 {
-    <div class="alert alert-info">Пунктів за цими умовами не знайдено.</div>
+    <div class="alert alert-info">За цими умовами пунктів немає. Спробуйте прибрати фільтр за послугою чи статусом.</div>
 }
 else
 {
-    <div class="row g-3">
+    <ul class="point-list">
         @foreach (var p in Model)
         {
-            <div class="col-sm-6 col-lg-4">
-                <partial name="_PointCard" model="p" />
-            </div>
+            <partial name="_PointRow" model="p" />
         }
-    </div>
+    </ul>
 }

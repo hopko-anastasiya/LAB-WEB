@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-bs-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@(ViewData["Title"] is string t ? $"{t} — " : "")Незламні</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
@@ -11,11 +14,11 @@
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-brand">
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-lightning-charge-fill text-warning"></i> Незламні
+                <a class="navbar-brand brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-lamp" aria-hidden="true"></span>Незламні
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                         aria-controls="mainNav" aria-expanded="false" aria-label="Меню">
@@ -23,11 +26,11 @@
                 </button>
                 <div class="collapse navbar-collapse" id="mainNav">
                     @{ var current = ViewContext.RouteData.Values["controller"]?.ToString(); }
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item"><a class="nav-link @(current == "Points" ? "active" : "")" asp-controller="Points" asp-action="Index"><i class="bi bi-geo-alt"></i> Пункти</a></li>
-                        <li class="nav-item"><a class="nav-link @(current == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index"><i class="bi bi-clipboard-pulse"></i> Звіти</a></li>
-                        <li class="nav-item"><a class="nav-link @(current == "Operators" ? "active" : "")" asp-controller="Operators" asp-action="Index"><i class="bi bi-people"></i> Оператори</a></li>
-                        <li class="nav-item"><a class="nav-link @(current == "Services" ? "active" : "")" asp-controller="Services" asp-action="Index"><i class="bi bi-grid"></i> Послуги</a></li>
+                    <ul class="navbar-nav ms-auto gap-lg-2">
+                        <li class="nav-item"><a class="nav-link @(current == "Points" ? "active" : "")" asp-controller="Points" asp-action="Index">Пункти</a></li>
+                        <li class="nav-item"><a class="nav-link @(current == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">Звіти</a></li>
+                        <li class="nav-item"><a class="nav-link @(current == "Operators" ? "active" : "")" asp-controller="Operators" asp-action="Index">Оператори</a></li>
+                        <li class="nav-item"><a class="nav-link @(current == "Services" ? "active" : "")" asp-controller="Services" asp-action="Index">Послуги</a></li>
                     </ul>
                 </div>
             </div>
@@ -38,24 +41,24 @@
         @if (TempData["Success"] is string ok)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle"></i> @ok
+                @ok
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрити"></button>
             </div>
         }
         @if (TempData["Error"] is string err)
         {
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i> @err
+                @err
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрити"></button>
             </div>
         }
         @RenderBody()
     </main>
 
-    <footer class="border-top py-3 text-muted small">
-        <div class="container d-flex justify-content-between">
-            <span>&copy; @DateTime.Now.Year Незламні — мапа пунктів незламності</span>
-            <span>Лабораторний проєкт з WEB-технологій</span>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>Незламні, @DateTime.Now.Year</span>
+            <span>Проєкт з курсу «WEB-технології»</span>
         </div>
     </footer>
 

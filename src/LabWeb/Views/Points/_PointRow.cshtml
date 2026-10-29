@@ -1,0 +1,21 @@
+@model Point
+<li class="point-row">
+    <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" alt="" loading="lazy" />
+    <div>
+        <h3><a asp-controller="Points" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a></h3>
+        <p class="addr">@Model.Settlement, @Model.Address</p>
+        <div class="services">
+            @foreach (var s in Model.Services.OrderBy(s => s.Name))
+            {
+                <span class="chip"><i class="bi @s.Icon" aria-hidden="true"></i>@s.Name</span>
+            }
+        </div>
+    </div>
+    <div class="side">
+        <partial name="_StatusBadge" model="Model.Status" />
+        @if (!string.IsNullOrEmpty(Model.Schedule))
+        {
+            <small>@Model.Schedule</small>
+        }
+    </div>
+</li>

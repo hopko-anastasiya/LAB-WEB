@@ -1,46 +1,79 @@
 @model HomeViewModel
 @{
     ViewData["Title"] = "Головна";
+    int[][] buildings = [[4, 4], [6, 7], [3, 3], [7, 5], [4, 8], [5, 3], [3, 6], [6, 4], [4, 5]];
+    var totalWindows = buildings.Sum(b => b[0] * b[1]);
+    var slots = new Dictionary<int, (SkylinePoint Point, int Order)>();
+    for (var i = 0; i < Model.Skyline.Count; i++)
+    {
+        var slot = (int)((i + 0.5) * totalWindows / Math.Max(Model.Skyline.Count, 1)) % totalWindows;
+        while (slots.ContainsKey(slot)) slot = (slot + 1) % totalWindows;
+        slots[slot] = (Model.Skyline[i], i);
+    }
+    var index = 0;
 }
-<div class="p-4 p-md-5 mb-4 rounded-3 hero">
-    <h1 class="display-6 fw-semibold">Пункти незламності поруч</h1>
-    <p class="lead mb-4">Де є світло, зв'язок і тепло — актуальні статуси від операторів пунктів.</p>
-    <a asp-controller="Points" asp-action="Index" class="btn btn-warning btn-lg"><i class="bi bi-geo-alt"></i> Переглянути пункти</a>
-    <a asp-controller="Reports" asp-action="Create" class="btn btn-outline-light btn-lg ms-2"><i class="bi bi-plus-lg"></i> Надіслати звіт</a>
-</div>
+<section class="hero">
+    <h1>Де зараз є світло</h1>
+    <p class="hero-lead">Пункти незламності поруч із вами: де можна зарядити телефон, зігрітися й вийти на зв'язок. Статуси оновлюють оператори пунктів.</p>
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-controller="Points" asp-action="Index" class="btn btn-primary btn-lg">Знайти пункт</a>
+        <a asp-controller="Reports" asp-action="Create" class="btn btn-outline-light btn-lg">Повідомити про стан</a>
+    </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3"><div class="card stat"><div class="card-body"><div class="stat-value">@Model.PointsTotal</div><div class="text-muted">Пунктів</div></div></div></div>
-    <div class="col-6 col-md-3"><div class="card stat"><div class="card-body"><div class="stat-value text-success">@Model.PointsWorking</div><div class="text-muted">Працюють зараз</div></div></div></div>
-    <div class="col-6 col-md-3"><div class="card stat"><div class="card-body"><div class="stat-value">@Model.OperatorsTotal</div><div class="text-muted">Операторів</div></div></div></div>
-    <div class="col-6 col-md-3"><div class="card stat"><div class="card-body"><div class="stat-value">@Model.ReportsToday</div><div class="text-muted">Звітів за добу</div></div></div></div>
-</div>
+    <div class="skyline">
+        @foreach (var b in buildings)
+        {
+            <div class="building" style="--cols:@b[0]">
+                @for (var w = 0; w < b[0] * b[1]; w++, index++)
+                {
+                    if (slots.TryGetValue(index, out var s))
+                    {
+                        <a class="win @(s.Point.Lit ? "lit" : "")" style="--i:@s.Order"
+                           asp-controller="Points" asp-action="Details" asp-route-id="@s.Point.Id"
+                           title="@s.Point.Name (@s.Point.Settlement): @(s.Point.Lit ? "є світло" : "світла немає")"
+                           aria-label="@s.Point.Name, @(s.Point.Lit ? "є світло" : "світла немає")"></a>
+                    }
+                    else
+                    {
+                        <span class="win" aria-hidden="true"></span>
+                    }
+                }
+            </div>
+        }
+    </div>
+    <p class="hero-count">Світло є в <strong>@Model.PointsLit</strong> з @Model.PointsTotal пунктів. Кожне жовте вікно веде до пункту.</p>
+</section>
 
-<div class="row g-4">
+<div class="row g-5">
     <div class="col-lg-8">
-        <h2 class="h5 mb-3">Пункти</h2>
-        <div class="row g-3">
+        <div class="d-flex justify-content-between align-items-baseline mb-3">
+            <h2 class="mb-0">Пункти</h2>
+            <a asp-controller="Points" asp-action="Index">Усі пункти</a>
+        </div>
+        <ul class="point-list">
             @foreach (var p in Model.Points)
             {
-                <div class="col-md-6">
-                    <partial name="~/Views/Points/_PointCard.cshtml" model="p" />
-                </div>
+                <partial name="~/Views/Points/_PointRow.cshtml" model="p" />
             }
-        </div>
+        </ul>
     </div>
     <div class="col-lg-4">
-        <h2 class="h5 mb-3">Останні звіти</h2>
-        <ul class="list-group">
+        <h2 class="mb-3">Свіжі звіти</h2>
+        <ul class="feed">
             @foreach (var r in Model.LatestReports)
             {
-                <li class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <a asp-controller="Points" asp-action="Details" asp-route-id="@r.PointId" class="fw-semibold text-decoration-none">@r.Point?.Name</a>
+                <li>
+                    <div class="feed-top">
+                        <a asp-controller="Points" asp-action="Details" asp-route-id="@r.PointId">@r.Point?.Name</a>
                         <partial name="_StatusBadge" model="r.Status" />
                     </div>
-                    <small class="text-muted">@r.CreatedAt.ToLocalString() · @r.Occupancy осіб</small>
+                    <small>@r.CreatedAt.ToLocalString(), у пункті @r.Occupancy осіб</small>
                 </li>
             }
         </ul>
+        <div class="stat-line">
+            <span><b>@Model.OperatorsTotal</b>операторів</span>
+            <span><b>@Model.ReportsToday</b>звітів за добу</span>
+        </div>
     </div>
 </div>
