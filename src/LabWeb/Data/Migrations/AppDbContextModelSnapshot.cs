@@ -171,6 +171,56 @@ namespace LabWeb.Data.Migrations
                     b.ToTable("Communities");
                 });
 
+            modelBuilder.Entity("LabWeb.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NewStatus")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("OldStatus")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int?>("PointId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PointName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PointId");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ReadAt");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("LabWeb.Models.Operator", b =>
                 {
                     b.Property<int>("Id")
@@ -280,6 +330,24 @@ namespace LabWeb.Data.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("Points");
+                });
+
+            modelBuilder.Entity("LabWeb.Models.PointSubscription", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PointId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "PointId");
+
+                    b.HasIndex("PointId");
+
+                    b.ToTable("PointSubscriptions");
                 });
 
             modelBuilder.Entity("LabWeb.Models.Service", b =>
@@ -436,6 +504,24 @@ namespace LabWeb.Data.Migrations
                     b.Navigation("Community");
                 });
 
+            modelBuilder.Entity("LabWeb.Models.Notification", b =>
+                {
+                    b.HasOne("LabWeb.Models.Point", "Point")
+                        .WithMany()
+                        .HasForeignKey("PointId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("LabWeb.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Point");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LabWeb.Models.Operator", b =>
                 {
                     b.HasOne("LabWeb.Models.Community", "Community")
@@ -456,6 +542,25 @@ namespace LabWeb.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Operator");
+                });
+
+            modelBuilder.Entity("LabWeb.Models.PointSubscription", b =>
+                {
+                    b.HasOne("LabWeb.Models.Point", "Point")
+                        .WithMany()
+                        .HasForeignKey("PointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LabWeb.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Point");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LabWeb.Models.StatusReport", b =>

@@ -13,6 +13,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Community> Communities => Set<Community>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<BoardItem> BoardItems => Set<BoardItem>();
+    public DbSet<PointSubscription> PointSubscriptions => Set<PointSubscription>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -75,6 +77,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(x => new { x.PointId, x.CreatedAt });
+        });
+
+        b.Entity<PointSubscription>(e =>
+        {
+            e.HasKey(x => new { x.UserId, x.PointId });
+            e.HasIndex(x => x.PointId);
+        });
+
+        b.Entity<Notification>(e =>
+        {
+            e.Property(x => x.OldStatus).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.NewStatus).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.PointName).HasMaxLength(120);
+            e.HasOne(x => x.Point).WithMany().HasForeignKey(x => x.PointId).OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(x => new { x.UserId, x.EventId }).IsUnique();
+            e.HasIndex(x => new { x.UserId, x.ReadAt });
         });
 
         b.Entity<BoardItem>(e =>

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Hubs;
+using LabWeb.Messaging;
 using LabWeb.Search;
 using LabWeb.Services;
 using LabWeb.Telegram;
@@ -79,6 +80,14 @@ builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.Services.Configure<WebEncoderOptions>(o => o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
 builder.AddAppAuth();
+var rabbit = builder.Configuration.GetSection("RabbitMq").Get<RabbitMqOptions>() ?? new RabbitMqOptions();
+if (string.IsNullOrWhiteSpace(rabbit.Host))
+    builder.Services.AddSingleton<IStatusEventQueue, InMemoryStatusEventQueue>();
+else
+    builder.Services.AddSingleton<IStatusEventQueue>(sp => new RabbitMqStatusEventQueue(rabbit, sp.GetRequiredService<ILogger<RabbitMqStatusEventQueue>>()));
+builder.Services.AddScoped<IDataChangeHandler, StatusChangePublisher>();
+builder.Services.AddScoped<NotificationWriter>();
+builder.Services.AddHostedService<NotificationConsumerService>();
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Ai:Gemini"));
 builder.Services.AddHttpClient<IGeminiClient, GeminiClient>(c => c.Timeout = TimeSpan.FromMinutes(2));
 builder.Services.AddScoped<PointTools>();

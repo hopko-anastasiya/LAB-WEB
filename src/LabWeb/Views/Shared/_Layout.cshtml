@@ -1,7 +1,7 @@
 @{
     var seoController = ViewContext.RouteData.Values["controller"]?.ToString();
     var seoAction = ViewContext.RouteData.Values["action"]?.ToString();
-    var noIndex = seoController is "Account" or "Community" or "Analytics" or "Board" or "Assistant"
+    var noIndex = seoController is "Account" or "Community" or "Analytics" or "Board" or "Assistant" or "Notifications"
         || seoAction is "Create" or "Edit" or "Delete" or "Error";
     var pageTitle = ViewData["Title"] is string title ? $"{title} — Незламні" : "Незламні";
     var pageDescription = ViewData["Description"] as string
@@ -62,6 +62,10 @@
                         <li class="nav-item"><a class="nav-link @(current == "Assistant" ? "active" : "")" asp-controller="Assistant" asp-action="Index">Асистент</a></li>
                         @if (CurrentUser.IsSignedIn)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link @(current == "Notifications" ? "active" : "")" asp-controller="Notifications" asp-action="Index" aria-label="Сповіщення"><i class="bi bi-bell" aria-hidden="true"></i><span class="d-lg-none ms-2">Сповіщення</span>@if (CurrentUser.UnreadNotifications > 0)
+                                {<span class="nav-badge">@CurrentUser.UnreadNotifications</span>}</a>
+                            </li>
                             <li class="nav-item dropdown user-menu">
                                 <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="user-initial" aria-hidden="true">@CurrentUser.User!.Name[..1]</span>@CurrentUser.User.Name

@@ -90,6 +90,24 @@
                 <p class="landing-meta"><i class="bi bi-clock" aria-hidden="true"></i> @Model.Schedule</p>
             }
             <p class="landing-meta">Оновлено @Model.UpdatedAt.ToLocalString()</p>
+            @if (!CurrentUser.IsSignedIn)
+            {
+                <a class="btn btn-sm btn-outline-light mt-3" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Points", new { id = Model.Id })"><i class="bi bi-bell" aria-hidden="true"></i> Увійти, щоб стежити за пунктом</a>
+            }
+            else if (ViewBag.Subscribed == true)
+            {
+                <form asp-controller="Notifications" asp-action="Unsubscribe" method="post" class="mt-3">
+                    <input type="hidden" name="pointId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-sm btn-outline-light"><i class="bi bi-bell-slash" aria-hidden="true"></i> Не стежити за пунктом</button>
+                </form>
+            }
+            else
+            {
+                <form asp-controller="Notifications" asp-action="Subscribe" method="post" class="mt-3">
+                    <input type="hidden" name="pointId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-sm btn-outline-light"><i class="bi bi-bell" aria-hidden="true"></i> Стежити за пунктом</button>
+                </form>
+            }
         </div>
         <div class="col-lg-5">
             <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="point-photo"

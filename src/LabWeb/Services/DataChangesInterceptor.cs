@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LabWeb.Services;
 
-public record DataChange(IReadOnlyList<int> PointIds, bool OperatorsOrServicesChanged);
+public record PointStatusChange(Func<int> PointId, string PointName, PointStatus OldStatus, PointStatus NewStatus);
+
+public record DataChange(IReadOnlyList<int> PointIds, bool OperatorsOrServicesChanged, IReadOnlyList<PointStatusChange> StatusChanges);
 
 public interface IDataChangeHandler
 {
@@ -21,6 +23,7 @@ public class DataChangesInterceptor(IServiceScopeFactory scopes, ILogger<DataCha
     {
         public List<Func<int>> PointIds { get; } = [];
         public bool OperatorsOrServices { get; set; }
+        public List<PointStatusChange> StatusChanges { get; } = [];
     }
 
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
@@ -39,7 +42,7 @@ public class DataChangesInterceptor(IServiceScopeFactory scopes, ILogger<DataCha
             && _pending.Remove(eventData.Context)
             && (pending.PointIds.Count > 0 || pending.OperatorsOrServices))
         {
-            var change = new DataChange(pending.PointIds.Select(id => id()).Distinct().ToList(), pending.OperatorsOrServices);
+            var change = new DataChange(pending.PointIds.Select(id => id()).Distinct().ToList(), pending.OperatorsOrServices, pending.StatusChanges);
             await DispatchAsync(change);
         }
         return await base.SavedChangesAsync(eventData, result, ct);
@@ -56,6 +59,10 @@ public class DataChangesInterceptor(IServiceScopeFactory scopes, ILogger<DataCha
             {
                 case Point point:
                     pending.PointIds.Add(() => point.Id);
+                    if (entry.State == EntityState.Modified
+                        && entry.Property(nameof(Point.Status)).OriginalValue is PointStatus oldStatus
+                        && oldStatus != point.Status)
+                        pending.StatusChanges.Add(new PointStatusChange(() => point.Id, point.Name, oldStatus, point.Status));
                     break;
                 case StatusReport report:
                     pending.PointIds.Add(() => report.Point?.Id ?? report.PointId);

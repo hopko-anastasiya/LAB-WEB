@@ -865,3 +865,31 @@ body:has(.point-contact) { padding-bottom: 4.75rem; }
 }
 .chat-form textarea { resize: none; field-sizing: content; max-height: 8rem; }
 .chat-note { color: var(--ink-muted); font-size: .8rem; margin: .6rem 0 0; }
+
+.nav-badge {
+    display: inline-block;
+    min-width: 1.15rem;
+    margin-left: .25rem;
+    padding: 0 .3rem;
+    border-radius: 1rem;
+    background: var(--lamp);
+    color: #1a1a1a;
+    font-size: .72rem;
+    font-weight: 600;
+    line-height: 1.15rem;
+    text-align: center;
+}
+.notice-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--night-line); }
+.notice-list li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: .35rem 1rem;
+    padding: .8rem .75rem;
+    border-bottom: 1px solid var(--night-line);
+}
+.notice-list li.is-new { background: var(--lamp-soft); }
+.notice-list a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.notice-list a:hover { color: var(--lamp); }
+.notice-list small { display: block; color: var(--ink-muted); }
+.notice-status { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; font-size: .85rem; }

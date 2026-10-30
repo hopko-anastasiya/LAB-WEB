@@ -52,6 +52,8 @@ public class PointsController(AppDbContext db, IFileStorage files, CurrentUser c
             .FirstOrDefaultAsync(p => p.Id == id);
         if (point is null) return NotFound();
 
+        ViewBag.Subscribed = currentUser.User is { } user
+            && await db.PointSubscriptions.AnyAsync(s => s.UserId == user.Id && s.PointId == id);
         ViewBag.Occupancy = (await db.StatusReports.AsNoTracking()
                 .Where(r => r.PointId == id)
                 .OrderByDescending(r => r.CreatedAt)
