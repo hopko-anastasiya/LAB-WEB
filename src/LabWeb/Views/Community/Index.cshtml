@@ -9,6 +9,14 @@
         <span class="plan-tag @(Model.Plan == Plan.Premium ? "plan-premium" : "")">План: @Model.Plan.DisplayName()</span>
         <h1 class="mt-2">@Model.Name</h1>
     </div>
+    <div class="d-flex flex-wrap gap-2">
+        <feature name="@Features.Analytics">
+            <a asp-controller="Analytics" asp-action="Index" class="btn btn-primary">Аналітика громади</a>
+        </feature>
+        <feature name="@Features.Analytics" negate="true">
+            <a asp-action="Premium" class="btn btn-outline-primary">Що дає Premium</a>
+        </feature>
+    </div>
 </div>
 
 <div class="stat-line mb-4">

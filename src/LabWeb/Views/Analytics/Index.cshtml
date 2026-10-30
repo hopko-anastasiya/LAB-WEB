@@ -1,0 +1,64 @@
+@model AnalyticsViewModel
+@{
+    ViewData["Title"] = "Аналітика";
+}
+<div class="page-head">
+    <div>
+        <span class="plan-tag plan-premium">Premium</span>
+        <h1 class="mt-2">Аналітика громади</h1>
+        <p class="text-muted mb-0">@Model.CommunityName</p>
+    </div>
+</div>
+
+@if (Model.PointsTotal == 0)
+{
+    <p class="lead-muted">У громади ще немає пунктів. <a asp-controller="Points" asp-action="Create">Додайте перший пункт</a>, і тут з'явиться аналітика.</p>
+}
+else
+{
+    <div class="stat-line mb-5">
+        <span><b>@Model.PointsTotal</b>пунктів</span>
+        @foreach (var (status, count) in Model.ByStatus)
+        {
+            <span><b>@count</b><partial name="_StatusBadge" model="status" /></span>
+        }
+        <span><b>@Model.WithoutElectricity</b>без світла за останнім звітом</span>
+    </div>
+
+    <div class="row g-5">
+        <section class="col-lg-6">
+            <h2 class="mb-3">Завантаженість зараз</h2>
+            <ul class="bar-list">
+                @foreach (var p in Model.Load)
+                {
+                    <li>
+                        <div class="bar-label">
+                            <a asp-controller="Points" asp-action="Details" asp-route-id="@p.Id">@p.Name</a>
+                            <span>@(p.Percent is null ? "немає звітів" : $"{p.Occupancy} з {p.Capacity}, {p.Percent}%")</span>
+                        </div>
+                        <div class="bar-track"><span class="bar @(p.Percent >= 90 ? "bar-hot" : "")" style="width:@Math.Min(p.Percent ?? 0, 100)%"></span></div>
+                    </li>
+                }
+            </ul>
+        </section>
+
+        <section class="col-lg-6">
+            <h2 class="mb-3">Звіти за 7 днів</h2>
+            <ul class="bar-list">
+                @foreach (var d in Model.Days)
+                {
+                    <li>
+                        <div class="bar-label">
+                            <span>@d.Day.ToString("ddd, dd.MM")</span>
+                            <span>@d.Reports звітів, зі світлом @d.WithElectricity</span>
+                        </div>
+                        <div class="bar-track">
+                            <span class="bar bar-muted" style="width:@(100 * d.Reports / Model.MaxReportsPerDay)%"></span>
+                            <span class="bar bar-overlay" style="width:@(100 * d.WithElectricity / Model.MaxReportsPerDay)%"></span>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </section>
+    </div>
+}

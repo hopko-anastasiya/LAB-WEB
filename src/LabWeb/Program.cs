@@ -11,6 +11,7 @@ using LabWeb.Telegram;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,10 @@ builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
 builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.AddAppAuth();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddFeatureManagement()
+    .AddFeatureFilter<PlanFilter>()
+    .UseDisabledFeaturesHandler(new RedirectToPremium());
 builder.Services.AddHostedService<SearchIndexInitializer>();
 builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 builder.Services.AddHttpClient<ITelegramApi, TelegramApi>(c => c.Timeout = TimeSpan.FromSeconds(40));

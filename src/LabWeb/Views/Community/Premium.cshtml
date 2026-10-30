@@ -1,0 +1,49 @@
+@model CurrentUser
+@{
+    ViewData["Title"] = "Premium";
+    var community = Model.Community;
+}
+<div class="premium-page">
+    <span class="plan-tag plan-premium">Premium</span>
+    <h1 class="mt-2">Аналітика для громади</h1>
+    <p class="lead-muted">Premium відкриває сторінку аналітики: які пункти зараз переповнені, де найдовше немає
+        світла і скільки звітів надходить щодня. Базовий план лишається безкоштовним і має все для мапи та звітів.</p>
+
+    <table class="table plan-table">
+        <thead>
+            <tr><th></th><th>Базовий</th><th>Premium</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Пункти, оператори, звіти</td><td>Так</td><td>Так</td></tr>
+            <tr><td>Мапа й статуси наживо</td><td>Так</td><td>Так</td></tr>
+            <tr><td>API і Telegram-бот</td><td>Так</td><td>Так</td></tr>
+            <tr><td>Аналітика громади</td><td class="text-muted">Ні</td><td>Так</td></tr>
+        </tbody>
+    </table>
+
+    @if (community is null)
+    {
+        <p class="text-muted">План вмикає адміністратор громади. <a asp-action="Start">Приєднайтеся до громади</a>, щоб продовжити.</p>
+    }
+    else if (community.Plan == Plan.Premium)
+    {
+        <p>У громади «@community.Name» уже Premium. <a asp-controller="Analytics" asp-action="Index">Відкрити аналітику</a></p>
+        @if (Model.IsCommunityAdmin)
+        {
+            <form asp-action="ChangePlan" method="post">
+                <button name="plan" value="@Plan.Free" class="btn btn-link px-0 text-muted">Повернутися на базовий план</button>
+            </form>
+        }
+    }
+    else if (Model.IsCommunityAdmin)
+    {
+        <form asp-action="ChangePlan" method="post">
+            <button name="plan" value="@Plan.Premium" class="btn btn-primary btn-lg">Увімкнути Premium</button>
+        </form>
+        <p class="auth-note">Навчальний проєкт: оплата не підключена, план вмикається одразу.</p>
+    }
+    else
+    {
+        <p class="text-muted">У громади «@community.Name» базовий план. Увімкнути Premium може її адміністратор.</p>
+    }
+</div>
