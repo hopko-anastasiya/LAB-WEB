@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using LabWeb.Assistant;
 using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Models;
@@ -23,6 +24,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public FakeTelegramApi Telegram { get; } = new();
 
+    public FakeGeminiClient Gemini { get; } = new();
+
     public const string SystemAdminEmail = "admin@tests.local";
 
     private readonly Lazy<string> _adminToken;
@@ -30,6 +33,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public ApiFactory()
     {
         Environment.SetEnvironmentVariable("Auth__Google__ClientId", "test-google-client");
+        Environment.SetEnvironmentVariable("Ai__Gemini__ApiKey", "test-gemini-key");
         Environment.SetEnvironmentVariable("Auth__Google__ClientSecret", "test-google-secret");
         _adminToken = new Lazy<string>(() => CreateUser(SystemAdminEmail, "Тестова громада", Plan.Premium).Token);
     }
@@ -77,7 +81,10 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 ["Telegram:WebhookSecret"] = TelegramSecret,
                 ["Auth:SystemAdmins:0"] = SystemAdminEmail
             }));
-        builder.ConfigureTestServices(services => services.AddSingleton<ITelegramApi>(Telegram));
+        builder.ConfigureTestServices(services => {
+            services.AddSingleton<ITelegramApi>(Telegram);
+            services.AddSingleton<IGeminiClient>(Gemini);
+        });
     }
 
     public async Task InitializeAsync()

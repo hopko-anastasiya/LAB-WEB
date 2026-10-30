@@ -1,7 +1,7 @@
 @{
     var seoController = ViewContext.RouteData.Values["controller"]?.ToString();
     var seoAction = ViewContext.RouteData.Values["action"]?.ToString();
-    var noIndex = seoController is "Account" or "Community" or "Analytics" or "Board"
+    var noIndex = seoController is "Account" or "Community" or "Analytics" or "Board" or "Assistant"
         || seoAction is "Create" or "Edit" or "Delete" or "Error";
     var pageTitle = ViewData["Title"] is string title ? $"{title} — Незламні" : "Незламні";
     var pageDescription = ViewData["Description"] as string
@@ -59,6 +59,7 @@
                         <li class="nav-item"><a class="nav-link @(current == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">Звіти</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Operators" ? "active" : "")" asp-controller="Operators" asp-action="Index">Оператори</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Services" ? "active" : "")" asp-controller="Services" asp-action="Index">Послуги</a></li>
+                        <li class="nav-item"><a class="nav-link @(current == "Assistant" ? "active" : "")" asp-controller="Assistant" asp-action="Index">Асистент</a></li>
                         @if (CurrentUser.IsSignedIn)
                         {
                             <li class="nav-item dropdown user-menu">

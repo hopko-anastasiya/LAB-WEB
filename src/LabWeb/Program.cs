@@ -2,8 +2,12 @@ using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Text.Json.Serialization;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
 using LabWeb.Api;
 using LabWeb.Assistant;
+using LabWeb.Controllers;
+using Microsoft.AspNetCore.RateLimiting;
 using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Hubs;
@@ -75,10 +79,20 @@ builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.Services.Configure<WebEncoderOptions>(o => o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
 builder.AddAppAuth();
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Ai:Gemini"));
+builder.Services.AddHttpClient<IGeminiClient, GeminiClient>(c => c.Timeout = TimeSpan.FromMinutes(2));
 builder.Services.AddScoped<PointTools>();
+builder.Services.AddScoped<AssistantAgent>();
 builder.Services.AddMcpServer()
     .WithHttpTransport(o => o.Stateless = true)
     .WithToolsFromAssembly();
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy(AssistantController.RateLimitPolicy, ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(10) }));
+});
 if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
     builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath)).SetApplicationName("LabWeb");
 builder.Services.AddHttpContextAccessor();
@@ -131,6 +145,7 @@ app.UseRouting();
 app.UseOutputCache();
 app.UseAuthentication();
 app.UseMiddleware<CurrentUserMiddleware>();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllerRoute(

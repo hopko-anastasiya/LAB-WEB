@@ -19,6 +19,8 @@ public class SeoController(AppDbContext db) : Controller
         Disallow: /Community/
         Disallow: /Analytics/
         Disallow: /Board/
+        Disallow: /Assistant/
+        Disallow: /mcp
         Disallow: /hubs/
         Disallow: /api/
 
