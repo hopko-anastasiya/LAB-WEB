@@ -106,6 +106,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DatabaseMigrator.MigrateAsync(db);
     await DbSeeder.SeedAsync(db);
+    await DemoDataSeeder.SeedAsync(db);
     await SettlementImporter.ImportAsync(db, app.Environment.ContentRootPath);
 }
 
