@@ -25,6 +25,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ConnectionStrings__Default: Host=db;Port=5432;Database=labweb;Username=labweb;Password=${POSTGRES_PASSWORD:-labweb}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+      Telegram__WebhookUrl: ${TELEGRAM_WEBHOOK_URL:-}
+      Telegram__WebhookSecret: ${TELEGRAM_WEBHOOK_SECRET:-}
+      Telegram__SiteUrl: ${SITE_URL:-}
     ports:
       - "${WEB_PORT:-8080}:8080"
     volumes:
