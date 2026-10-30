@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Settlement> Settlements => Set<Settlement>();
     public DbSet<Community> Communities => Set<Community>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<BoardItem> BoardItems => Set<BoardItem>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -74,6 +75,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(x => new { x.PointId, x.CreatedAt });
+        });
+
+        b.Entity<BoardItem>(e =>
+        {
+            e.HasOne(x => x.Community)
+             .WithMany()
+             .HasForeignKey(x => x.CommunityId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.Author)
+             .WithMany()
+             .HasForeignKey(x => x.AuthorId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Points).HasColumnType("jsonb");
+            e.HasIndex(x => x.CommunityId);
         });
 
         b.Entity<Settlement>(e =>

@@ -1,0 +1,58 @@
+@model BoardViewModel
+@{
+    ViewData["Title"] = "Штабна мапа";
+    ViewData["FullWidth"] = true;
+}
+@section Head {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+}
+
+<div class="board">
+    <div class="board-bar">
+        <div class="board-title">
+            <h1>Штабна мапа</h1>
+            <span>@Model.CommunityName</span>
+        </div>
+
+        <div class="board-tools" role="group" aria-label="Інструмент">
+            <button type="button" class="board-tool" data-tool="move" aria-pressed="true"><i class="bi bi-arrows-move" aria-hidden="true"></i>Рухати</button>
+            <button type="button" class="board-tool" data-tool="pen" aria-pressed="false"><i class="bi bi-pencil" aria-hidden="true"></i>Малювати</button>
+            <button type="button" class="board-tool" data-tool="note" aria-pressed="false"><i class="bi bi-chat-left-text" aria-hidden="true"></i>Примітка</button>
+            <button type="button" class="board-tool" data-tool="erase" aria-pressed="false"><i class="bi bi-eraser" aria-hidden="true"></i>Стерти</button>
+        </div>
+
+        <div class="board-swatches" role="group" aria-label="Колір">
+            <button type="button" class="board-swatch" data-color="#F5B841" style="--swatch:#F5B841" aria-label="Жовтий" aria-pressed="true"></button>
+            <button type="button" class="board-swatch" data-color="#E8833A" style="--swatch:#E8833A" aria-label="Помаранчевий" aria-pressed="false"></button>
+            <button type="button" class="board-swatch" data-color="#6F8FD6" style="--swatch:#6F8FD6" aria-label="Синій" aria-pressed="false"></button>
+            <button type="button" class="board-swatch" data-color="#E8ECF4" style="--swatch:#E8ECF4" aria-label="Білий" aria-pressed="false"></button>
+        </div>
+
+        <div class="board-widths" role="group" aria-label="Товщина">
+            <button type="button" class="board-width" data-width="3" style="--w:3px" aria-label="Тонка лінія" aria-pressed="true"></button>
+            <button type="button" class="board-width" data-width="6" style="--w:6px" aria-label="Середня лінія" aria-pressed="false"></button>
+            <button type="button" class="board-width" data-width="12" style="--w:12px" aria-label="Товста лінія" aria-pressed="false"></button>
+        </div>
+
+        @if (Model.IsAdmin)
+        {
+            <button type="button" class="btn btn-sm btn-outline-danger" id="boardClear">Очистити дошку</button>
+        }
+
+        <p class="board-presence" id="boardPresence" aria-live="polite">Підключаємось…</p>
+    </div>
+
+    <div id="boardMap" class="board-map" data-tool="move" aria-label="Спільна мапа громади"></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script>
+        window.boardConfig = {
+            hubUrl: '@Url.Content("~/hubs/board")',
+            points: @Json.Serialize(Model.Points)
+        };
+    </script>
+    <script src="~/js/board.js" asp-append-version="true"></script>
+}

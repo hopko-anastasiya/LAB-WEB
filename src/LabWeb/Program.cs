@@ -76,6 +76,7 @@ if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddFeatureManagement()
     .AddFeatureFilter<PlanFilter>()
+    .AddFeatureFilter<ExplicitPlanFilter>()
     .UseDisabledFeaturesHandler(new RedirectToPremium());
 builder.Services.AddHostedService<SearchIndexInitializer>();
 builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
@@ -128,6 +129,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<PointsHub>("/hubs/points");
+app.MapHub<BoardHub>("/hubs/board");
 
 app.Run();
 
