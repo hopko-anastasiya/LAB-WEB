@@ -1,6 +1,7 @@
 @model AnalyticsViewModel
 @{
     ViewData["Title"] = "Аналітика";
+    var hasReports = Model.Days.Any(d => d.Reports > 0);
 }
 <div class="page-head">
     <div>
@@ -25,40 +26,68 @@ else
         <span><b>@Model.WithoutElectricity</b>без світла за останнім звітом</span>
     </div>
 
+    <section class="mb-5">
+        <h2 class="mb-1">Звіти за 30 днів</h2>
+        <p class="text-muted">Скільки звітів надійшло щодня і в скількох із них було світло.</p>
+        @if (hasReports)
+        {
+            <div class="chart-box chart-tall"><canvas id="daysChart" role="img" aria-label="Кількість звітів за днями, зі світлом і без"></canvas></div>
+            <details class="chart-table">
+                <summary>Показати таблицею</summary>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Дата</th><th>Звітів</th><th>Зі світлом</th></tr></thead>
+                        <tbody>
+                            @foreach (var d in Model.Days.Where(d => d.Reports > 0))
+                            {
+                                <tr><td>@d.Day.ToString("dd.MM")</td><td>@d.Reports</td><td>@d.WithElectricity</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        }
+        else
+        {
+            <p class="text-muted">За цей час звітів не було.</p>
+        }
+    </section>
+
     <div class="row g-5">
         <section class="col-lg-6">
-            <h2 class="mb-3">Завантаженість зараз</h2>
-            <ul class="bar-list">
-                @foreach (var p in Model.Load)
-                {
-                    <li>
-                        <div class="bar-label">
-                            <a asp-controller="Points" asp-action="Details" asp-route-id="@p.Id">@p.Name</a>
-                            <span>@(p.Percent is null ? "немає звітів" : $"{p.Occupancy} з {p.Capacity}, {p.Percent}%")</span>
-                        </div>
-                        <div class="bar-track"><span class="bar @(p.Percent >= 90 ? "bar-hot" : "")" style="width:@Math.Min(p.Percent ?? 0, 100)%"></span></div>
-                    </li>
-                }
-            </ul>
+            <h2 class="mb-1">Світло за годинами</h2>
+            <p class="text-muted">Частка звітів зі світлом залежно від години, за київським часом.</p>
+            @if (hasReports)
+            {
+                <div class="chart-box"><canvas id="hoursChart" role="img" aria-label="Частка звітів зі світлом за годинами доби"></canvas></div>
+            }
+            else
+            {
+                <p class="text-muted">За цей час звітів не було.</p>
+            }
         </section>
 
         <section class="col-lg-6">
-            <h2 class="mb-3">Звіти за 7 днів</h2>
-            <ul class="bar-list">
-                @foreach (var d in Model.Days)
-                {
-                    <li>
-                        <div class="bar-label">
-                            <span>@d.Day.ToString("ddd, dd.MM")</span>
-                            <span>@d.Reports звітів, зі світлом @d.WithElectricity</span>
-                        </div>
-                        <div class="bar-track">
-                            <span class="bar bar-muted" style="width:@(100 * d.Reports / Model.MaxReportsPerDay)%"></span>
-                            <span class="bar bar-overlay" style="width:@(100 * d.WithElectricity / Model.MaxReportsPerDay)%"></span>
-                        </div>
-                    </li>
-                }
-            </ul>
+            <h2 class="mb-1">Завантаженість зараз</h2>
+            <p class="text-muted">Людей у пункті за останнім звітом. Помаранчевим позначено пункти, заповнені на 90% і більше.</p>
+            <div class="chart-box" style="height:@(Math.Max(220, Model.Load.Count * 34))px">
+                <canvas id="loadChart" role="img" aria-label="Завантаженість пунктів у відсотках"></canvas>
+            </div>
         </section>
     </div>
+}
+
+@section Scripts {
+    @if (Model.PointsTotal > 0)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script src="~/js/charts.js" asp-append-version="true"></script>
+        <script>
+            nezlamniCharts.analytics({
+                days: @Json.Serialize(Model.Days.Select(d => new { label = d.Day.ToString("dd.MM"), withPower = d.WithElectricity, withoutPower = d.Reports - d.WithElectricity })),
+                hours: @Json.Serialize(Model.Hours.Select(h => new { label = h.Hour.ToString("00"), percent = h.Percent, reports = h.Reports })),
+                load: @Json.Serialize(Model.Load.Select(p => new { label = p.Name, percent = p.Percent, occupancy = p.Occupancy, capacity = p.Capacity }))
+            });
+        </script>
+    }
 }

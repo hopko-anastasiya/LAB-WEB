@@ -18,11 +18,13 @@ public static class StatusExtensions
         _ => "text-bg-secondary"
     };
 
-    public static string ToLocalString(this DateTime utc, string format = "dd.MM.yyyy HH:mm")
+    public static string ToLocalString(this DateTime utc, string format = "dd.MM.yyyy HH:mm") =>
+        utc.ToKyiv().ToString(format);
+
+    public static DateTime ToKyiv(this DateTime utc)
     {
         var tz = TryFindKyivZone();
-        var local = tz is null ? utc.ToLocalTime() : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz);
-        return local.ToString(format);
+        return tz is null ? utc.ToLocalTime() : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz);
     }
 
     private static TimeZoneInfo? _kyiv;
