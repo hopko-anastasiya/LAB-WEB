@@ -897,3 +897,24 @@ body:has(.point-contact) { padding-bottom: 4.75rem; }
 .photo-status { margin: .35rem 0 0; color: var(--ink-muted); font-size: .85rem; }
 .photo-status.is-error { color: var(--danger); }
 input[type=file].is-dragging { border-color: var(--lamp); box-shadow: 0 0 0 .2rem var(--lamp-soft); }
+
+.game { max-width: 800px; margin: 0 auto; }
+.game-score { font-family: var(--font-display); font-size: 1.4rem; margin: 0; }
+.game-score small { font-family: var(--font-text); font-size: .85rem; color: var(--ink-muted); margin-left: .5rem; }
+.game-stage { position: relative; }
+.game-stage canvas { display: block; width: 100%; height: auto; border-radius: .75rem; touch-action: none; }
+.game-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: .75rem;
+    background: rgba(20, 33, 61, .78);
+    text-align: center;
+}
+.game-overlay[hidden] { display: none; }
+.game-overlay p { max-width: 44ch; margin: 0; }

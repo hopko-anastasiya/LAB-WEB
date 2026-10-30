@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Гра «Нічна зміна»";
+    ViewData["Description"] = "Невелика гра: ловіть каністри для генератора й тримайте світло у вікнах міста якомога довше.";
+}
+<div class="game">
+    <div class="page-head mb-3">
+        <h1>Нічна зміна</h1>
+        <p class="game-score" aria-live="off"><span id="gameScore">0</span> с <small>рекорд: <span id="gameBest">0</span> с</small></p>
+    </div>
+    <div class="game-stage">
+        <canvas id="gameCanvas" width="800" height="450" role="img" aria-label="Ігрове поле: місто вночі, фургон ловить каністри з пальним"></canvas>
+        <div class="game-overlay" id="gameOverlay">
+            <p id="gameMessage">Ловіть каністри, щоб генератор працював, і оминайте бурульки. Коли пальне скінчиться, місто згасне.</p>
+            <button type="button" class="btn btn-primary btn-lg" id="gameStart">Почати зміну</button>
+        </div>
+    </div>
+    <p class="text-muted small mt-2">Керування: стрілки або A і D, на телефоні ведіть пальцем по полю.</p>
+</div>
+
+@section Scripts {
+    <script src="~/js/game.js" asp-append-version="true"></script>
+}
