@@ -171,6 +171,37 @@ namespace LabWeb.Data.Migrations
                     b.ToTable("Communities");
                 });
 
+            modelBuilder.Entity("LabWeb.Models.GuideBlock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CommunityId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Position")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommunityId", "Position");
+
+                    b.ToTable("GuideBlocks");
+                });
+
             modelBuilder.Entity("LabWeb.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -500,6 +531,17 @@ namespace LabWeb.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
+
+                    b.Navigation("Community");
+                });
+
+            modelBuilder.Entity("LabWeb.Models.GuideBlock", b =>
+                {
+                    b.HasOne("LabWeb.Models.Community", "Community")
+                        .WithMany()
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Community");
                 });

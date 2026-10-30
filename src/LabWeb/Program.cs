@@ -178,6 +178,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<PointsHub>("/hubs/points");
 app.MapHub<BoardHub>("/hubs/board");
+app.MapHub<GuideHub>("/hubs/guide");
 app.MapMcp("/mcp");
 app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 
