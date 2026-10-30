@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Text.Json.Serialization;
 using LabWeb.Api;
+using LabWeb.Assistant;
 using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Hubs;
@@ -74,6 +75,10 @@ builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.Services.Configure<WebEncoderOptions>(o => o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
 builder.AddAppAuth();
+builder.Services.AddScoped<PointTools>();
+builder.Services.AddMcpServer()
+    .WithHttpTransport(o => o.Stateless = true)
+    .WithToolsFromAssembly();
 if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
     builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath)).SetApplicationName("LabWeb");
 builder.Services.AddHttpContextAccessor();
@@ -137,6 +142,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<PointsHub>("/hubs/points");
 app.MapHub<BoardHub>("/hubs/board");
+app.MapMcp("/mcp");
 
 app.Run();
 
