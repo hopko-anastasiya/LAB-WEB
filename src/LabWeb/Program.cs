@@ -52,14 +52,15 @@ builder.Services.AddControllersWithViews(options =>
     };
 });
 
-builder.Services.AddSingleton<PointChangesInterceptor>();
+builder.Services.AddSingleton<DataChangesInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"),
             npgsql => npgsql.EnableRetryOnFailure())
-        .AddInterceptors(sp.GetRequiredService<PointChangesInterceptor>()));
+        .AddInterceptors(sp.GetRequiredService<DataChangesInterceptor>()));
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
+builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
 builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 builder.Services.AddHttpClient<ITelegramApi, TelegramApi>(c => c.Timeout = TimeSpan.FromSeconds(40));
 builder.Services.AddSingleton<BotSessions>();
