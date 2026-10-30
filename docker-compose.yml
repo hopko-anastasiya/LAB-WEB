@@ -32,11 +32,14 @@ services:
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
       Auth__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
       Auth__SystemAdmins__0: ${SYSTEM_ADMIN_EMAIL:-}
+      DataProtection__KeysPath: /app/keys
     ports:
       - "${WEB_PORT:-8080}:8080"
     volumes:
       - uploads:/app/wwwroot/uploads
+      - keys:/app/keys
 
 volumes:
   db-data:
   uploads:
+  keys:

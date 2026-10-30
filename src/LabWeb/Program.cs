@@ -8,6 +8,7 @@ using LabWeb.Hubs;
 using LabWeb.Search;
 using LabWeb.Services;
 using LabWeb.Telegram;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +71,8 @@ builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
 builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.AddAppAuth();
+if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
+    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath)).SetApplicationName("LabWeb");
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddFeatureManagement()
     .AddFeatureFilter<PlanFilter>()
