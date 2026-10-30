@@ -13,6 +13,9 @@
         <feature name="@Features.Analytics">
             <a asp-controller="Analytics" asp-action="Index" class="btn btn-primary">Аналітика громади</a>
         </feature>
+        <feature name="@Features.SharedBoard">
+            <a asp-controller="Board" asp-action="Index" class="btn btn-outline-primary">Штабна мапа</a>
+        </feature>
         <feature name="@Features.Analytics" negate="true">
             <a asp-action="Premium" class="btn btn-outline-primary">Що дає Premium</a>
         </feature>
