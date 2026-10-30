@@ -9,3 +9,5 @@
 .git/
 tests/
 README.md
+**/node_modules/
+**/wwwroot/app/
