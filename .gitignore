@@ -28,3 +28,7 @@ src/LabWeb/wwwroot/uploads/
 ## Node
 node_modules/
 src/LabWeb/wwwroot/app/
+
+## E2E
+tests/e2e/test-results*/
+tests/e2e/playwright-report/
