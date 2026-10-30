@@ -51,14 +51,17 @@ public class AssistantAgent(IGeminiClient gemini, PointTools tools, ILogger<Assi
             contents.Add(Content(m.Role, new JsonObject { ["text"] = m.Text }));
         contents.Add(Content("user", new JsonObject { ["text"] = message }));
 
+        var retried = false;
         for (var round = 0; round < MaxRounds; round++)
         {
             var modelParts = new JsonArray();
             var calls = new List<JsonObject>();
             var hasText = false;
+            string? finishReason = null;
 
             await foreach (var chunk in gemini.StreamAsync(Request(contents), ct))
             {
+                finishReason = chunk["candidates"]?[0]?["finishReason"]?.GetValue<string>() ?? finishReason;
                 foreach (var part in Parts(chunk))
                 {
                     modelParts.Add(part.DeepClone());
@@ -66,26 +69,28 @@ public class AssistantAgent(IGeminiClient gemini, PointTools tools, ILogger<Assi
                     {
                         calls.Add(call);
                     }
-                    else if (part["text"]?.GetValue<string>() is { Length: > 0 } text)
+                    else if (part["thought"]?.GetValue<bool>() != true && part["text"]?.GetValue<string>() is { Length: > 0 } text)
                     {
-                        if (part["thought"]?.GetValue<bool>() == true)
-                        {
-                            await emit(new AssistantEvent("thought", new { text }));
-                        }
-                        else
-                        {
-                            hasText = true;
-                            await emit(new AssistantEvent("text", new { text }));
-                        }
+                        hasText = true;
+                        await emit(new AssistantEvent("text", new { text }));
                     }
                 }
             }
 
             if (calls.Count == 0)
             {
-                if (!hasText)
+                if (hasText)
+                    return;
+
+                logger.LogWarning("Gemini не дав тексту відповіді, причина: {FinishReason}", finishReason);
+                if (retried)
+                {
                     await emit(new AssistantEvent("error", new { message = "Модель не дала відповіді. Спробуйте сформулювати запит інакше." }));
-                return;
+                    return;
+                }
+
+                retried = true;
+                continue;
             }
 
             contents.Add(new JsonObject { ["role"] = "model", ["parts"] = modelParts });
@@ -115,8 +120,7 @@ public class AssistantAgent(IGeminiClient gemini, PointTools tools, ILogger<Assi
             ["parts"] = new JsonArray(new JsonObject { ["text"] = $"{SystemPrompt}\nЗараз {DateTime.UtcNow.ToLocalString()} за київським часом." })
         },
         ["contents"] = contents.DeepClone(),
-        ["tools"] = new JsonArray(new JsonObject { ["functionDeclarations"] = Declarations.DeepClone() }),
-        ["generationConfig"] = new JsonObject { ["thinkingConfig"] = new JsonObject { ["includeThoughts"] = true } }
+        ["tools"] = new JsonArray(new JsonObject { ["functionDeclarations"] = Declarations.DeepClone() })
     };
 
     private static JsonObject Content(string role, JsonObject part) => new() { ["role"] = role, ["parts"] = new JsonArray(part) };

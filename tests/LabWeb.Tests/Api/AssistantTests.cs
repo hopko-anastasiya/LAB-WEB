@@ -30,7 +30,7 @@ public class AssistantTests(ApiFactory factory)
             .ToList();
 
     [Fact]
-    public async Task Answer_streams_thoughts_tool_calls_and_text()
+    public async Task Answer_streams_tool_calls_and_text_without_thoughts()
     {
         factory.Gemini.Script.Enqueue(
         [
@@ -44,9 +44,9 @@ public class AssistantTests(ApiFactory factory)
 
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType!.MediaType);
         var events = ParseEvents(await response.Content.ReadAsStringAsync());
-        Assert.Equal(["thought", "tool_call", "tool_result", "text", "text", "done"], events.Select(e => e.Type));
-        Assert.Equal("find_nearby_points", events[1].Data.GetProperty("name").GetString());
-        Assert.Contains("Знайдено пунктів", events[2].Data.GetProperty("summary").GetString());
+        Assert.Equal(["tool_call", "tool_result", "text", "text", "done"], events.Select(e => e.Type));
+        Assert.Equal("find_nearby_points", events[0].Data.GetProperty("name").GetString());
+        Assert.Contains("Знайдено пунктів", events[1].Data.GetProperty("summary").GetString());
 
         var second = factory.Gemini.Requests.Last();
         var contents = second["contents"]!.AsArray();
@@ -67,6 +67,20 @@ public class AssistantTests(ApiFactory factory)
 
         Assert.Contains("не знайдено", events.Single(e => e.Type == "tool_result").Data.GetProperty("summary").GetString());
         Assert.Equal("done", events[^1].Type);
+    }
+
+    [Fact]
+    public async Task Empty_answer_is_requested_once_more()
+    {
+        factory.Gemini.Script.Clear();
+        factory.Gemini.Script.Enqueue(["""{"text":"Думаю","thought":true}"""]);
+        factory.Gemini.Script.Enqueue(["""{"text":"Готово"}"""]);
+        var (browser, token) = await SignedIn();
+
+        var events = ParseEvents(await (await Send(browser, token, new { message = "Привіт" })).Content.ReadAsStringAsync());
+
+        Assert.Contains(events, e => e.Type == "text");
+        Assert.DoesNotContain(events, e => e.Type == "error");
     }
 
     [Fact]

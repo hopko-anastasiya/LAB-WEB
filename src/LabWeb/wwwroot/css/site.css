@@ -849,7 +849,6 @@ body:has(.point-contact) { padding-bottom: 4.75rem; }
 .chat-steps { margin-bottom: .6rem; font-size: .85rem; color: var(--ink-muted); }
 .chat-steps summary { cursor: pointer; }
 .chat-steps ol { list-style: none; margin: .4rem 0 0; padding: 0 0 0 .8rem; border-left: 2px solid var(--night-line); display: grid; gap: .35rem; }
-.step-thought { font-style: italic; white-space: pre-wrap; }
 .step-tool { color: var(--ink); }
 .step-tool small { display: block; color: var(--ink-muted); }
 .chat-form {
