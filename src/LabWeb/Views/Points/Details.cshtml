@@ -17,7 +17,9 @@
     var percent = last is null || Model.Capacity <= 0 ? (int?)null : Math.Min(100, 100 * last.Occupancy / Model.Capacity);
     var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.PathBase}";
     var pageUrl = $"{baseUrl}{Url.Action("Details", "Points", new { id = Model.Id })}";
-    var imageUrl = Model.PhotoPath is null ? null : $"{baseUrl}{Model.PhotoPath}";
+    var imageUrl = Model.PhotoPath is null ? null
+        : Model.PhotoPath.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? Model.PhotoPath
+        : $"{baseUrl}{Model.PhotoPath}";
     var description = $"{statusText}. {Model.Settlement}, {Model.Address}."
         + (services.Count > 0 ? $" Послуги: {string.Join(", ", services.Select(s => s.Name.ToLowerInvariant()))}." : "");
 

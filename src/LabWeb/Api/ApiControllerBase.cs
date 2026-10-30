@@ -9,7 +9,9 @@ namespace LabWeb.Api;
 public abstract class ApiControllerBase : ControllerBase
 {
     protected string? AbsoluteUrl(string? path) =>
-        string.IsNullOrEmpty(path) ? null : $"{Request.Scheme}://{Request.Host}{Request.PathBase}{path}";
+        string.IsNullOrEmpty(path) ? null
+        : path.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? path
+        : $"{Request.Scheme}://{Request.Host}{Request.PathBase}{path}";
 
     protected ObjectResult NotFoundProblem(string detail) =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Не знайдено", detail: detail);

@@ -4,6 +4,7 @@ using System.Text.Unicode;
 using System.Text.Json.Serialization;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
+using Azure.Storage.Blobs;
 using LabWeb.Api;
 using LabWeb.Assistant;
 using LabWeb.Controllers;
@@ -71,7 +72,18 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
             npgsql => npgsql.EnableRetryOnFailure())
         .AddInterceptors(sp.GetRequiredService<DataChangesInterceptor>()));
 
-builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
+builder.Services.AddSingleton<UploadRules>();
+var blob = builder.Configuration.GetSection("Storage:Blob").Get<BlobStorageOptions>() ?? new BlobStorageOptions();
+if (string.IsNullOrWhiteSpace(blob.ConnectionString))
+{
+    builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
+}
+else
+{
+    builder.Services.AddSingleton(new BlobContainerClient(blob.ConnectionString, blob.Container));
+    builder.Services.AddSingleton(blob);
+    builder.Services.AddScoped<IFileStorage, BlobFileStorage>();
+}
 builder.Services.AddScoped<PointStatusService>();
 builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
 builder.Services.AddSingleton<PointSearchIndex>();
