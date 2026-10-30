@@ -1,0 +1,6 @@
+@model (string Icon, string Name, bool Available)
+<li class="now-row @(Model.Available ? "is-on" : "is-off")">
+    <i class="bi @Model.Icon" aria-hidden="true"></i>
+    <span>@Model.Name</span>
+    <b>@(Model.Available ? "є" : "немає")</b>
+</li>

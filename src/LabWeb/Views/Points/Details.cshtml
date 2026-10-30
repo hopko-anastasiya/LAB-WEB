@@ -1,11 +1,63 @@
 @model Point
 @{
-    ViewData["Title"] = Model.Name;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     var occupancy = (List<(string Label, int Value)>)ViewBag.Occupancy;
+    var lat = Model.Latitude.ToString(inv);
+    var lng = Model.Longitude.ToString(inv);
+    var routeUrl = $"https://www.google.com/maps/dir/?api=1&destination={lat},{lng}";
+    var last = Model.Reports.OrderByDescending(r => r.CreatedAt).FirstOrDefault();
+    var services = Model.Services.OrderBy(s => s.Name).ToList();
+    var statusText = Model.Status switch
+    {
+        PointStatus.Working => "Зараз працює",
+        PointStatus.Limited => "Працює з обмеженнями",
+        _ => "Зараз не працює"
+    };
+    var telegram = Model.Operator?.Telegram?.TrimStart('@');
+    var percent = last is null || Model.Capacity <= 0 ? (int?)null : Math.Min(100, 100 * last.Occupancy / Model.Capacity);
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.PathBase}";
+    var pageUrl = $"{baseUrl}{Url.Action("Details", "Points", new { id = Model.Id })}";
+    var imageUrl = Model.PhotoPath is null ? null : $"{baseUrl}{Model.PhotoPath}";
+    var description = $"{statusText}. {Model.Settlement}, {Model.Address}."
+        + (services.Count > 0 ? $" Послуги: {string.Join(", ", services.Select(s => s.Name.ToLowerInvariant()))}." : "");
+
+    ViewData["Title"] = $"{Model.Name}, {Model.Settlement}: пункт незламності";
+    ViewData["Description"] = description.Length > 160 ? description[..157].TrimEnd() + "…" : description;
+    ViewData["Canonical"] = pageUrl;
+    ViewData["OgImage"] = imageUrl;
+
+    var structuredData = new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "CivicStructure",
+        ["name"] = Model.Name,
+        ["description"] = Model.Description ?? description,
+        ["url"] = pageUrl,
+        ["image"] = imageUrl,
+        ["telephone"] = Model.Operator?.Phone,
+        ["openingHours"] = Model.Schedule,
+        ["address"] = new Dictionary<string, object?>
+        {
+            ["@type"] = "PostalAddress",
+            ["streetAddress"] = Model.Address,
+            ["addressLocality"] = Model.Settlement,
+            ["addressCountry"] = "UA"
+        },
+        ["geo"] = new Dictionary<string, object?>
+        {
+            ["@type"] = "GeoCoordinates",
+            ["latitude"] = Model.Latitude,
+            ["longitude"] = Model.Longitude
+        }
+    };
 }
-@section Head { <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" /> }
+@section Head {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    <script type="application/ld+json">@Json.Serialize(structuredData.Where(kv => kv.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value))</script>
+}
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/point-map.js" asp-append-version="true"></script>
     @if (occupancy.Count >= 2)
     {
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -18,105 +70,179 @@
             });
         </script>
     }
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="~/js/point-map.js" asp-append-version="true"></script>
 }
-<nav aria-label="breadcrumb">
+
+<nav aria-label="Навігаційний ланцюжок">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-action="Index">Пункти</a></li>
         <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
     </ol>
 </nav>
 
-<div class="row g-5">
-    <div class="col-lg-5">
-        <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="point-photo" alt="@Model.Name" />
-        <div class="point-map mt-3" data-point-map data-status="@Model.Status"
-             data-lat="@Model.Latitude.ToString(inv)" data-lng="@Model.Longitude.ToString(inv)"
-             aria-label="Пункт на мапі"></div>
-        <a class="d-inline-block mt-2" asp-controller="Map" asp-action="Index">Усі пункти на мапі</a>
-    </div>
-    <div class="col-lg-7">
-        <partial name="_StatusBadge" model="Model.Status" />
-        <h1 class="mt-2 mb-1">@Model.Name</h1>
-        <p class="text-muted mb-3">@Model.Settlement, @Model.Address</p>
-        @if (!string.IsNullOrWhiteSpace(Model.Description))
+<article class="landing">
+    <header class="row g-4 g-lg-5 align-items-center landing-hero">
+        <div class="col-lg-7">
+            <p class="landing-status landing-status-@Model.Status.ToString().ToLowerInvariant()">@statusText</p>
+            <h1>@Model.Name</h1>
+            <p class="landing-address">@Model.Settlement, @Model.Address</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Schedule))
+            {
+                <p class="landing-meta"><i class="bi bi-clock" aria-hidden="true"></i> @Model.Schedule</p>
+            }
+            <p class="landing-meta">Оновлено @Model.UpdatedAt.ToLocalString()</p>
+        </div>
+        <div class="col-lg-5">
+            <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="point-photo"
+                 alt="@(Model.PhotoPath is null ? "" : $"Фото: {Model.Name}")" width="800" height="600" />
+        </div>
+    </header>
+
+    <section class="landing-section row g-4 g-lg-5" aria-labelledby="nowHeading">
+        <div class="col-lg-7">
+            <h2 id="nowHeading">Що є зараз</h2>
+            @if (last is null)
+            {
+                <p class="text-muted">Звітів ще немає. Перед візитом зателефонуйте оператору.</p>
+            }
+            else
+            {
+                <ul class="now-list">
+                    <partial name="_NowRow" model="@(("bi-lightbulb", "Світло", last.HasElectricity))" />
+                    <partial name="_NowRow" model="@(("bi-wifi", "Зв'язок та інтернет", last.HasInternet))" />
+                    <partial name="_NowRow" model="@(("bi-thermometer-half", "Тепло", last.HasHeating))" />
+                </ul>
+                <p class="landing-meta mt-2">За звітом від @last.CreatedAt.ToLocalString()</p>
+                @if (!string.IsNullOrWhiteSpace(last.Comment))
+                {
+                    <blockquote class="landing-quote">@last.Comment</blockquote>
+                }
+            }
+        </div>
+        <div class="col-lg-5">
+            <h2>Скільки людей</h2>
+            @if (percent is null)
+            {
+                <p class="text-muted">Місткість: @Model.Capacity осіб. Даних про заповненість немає.</p>
+            }
+            else
+            {
+                <p class="people-count"><b>@last!.Occupancy</b> з @Model.Capacity осіб</p>
+                <div class="progress" role="progressbar" aria-label="Заповненість пункту" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar @(percent >= 90 ? "people-full" : "")" style="width:@percent%"></div>
+                </div>
+            }
+        </div>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Description) || services.Count > 0)
+    {
+        <section class="landing-section" aria-labelledby="servicesHeading">
+            <h2 id="servicesHeading">Що тут можна зробити</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="landing-lead">@Model.Description</p>
+            }
+            @if (services.Count > 0)
+            {
+                <ul class="landing-services">
+                    @foreach (var s in services)
+                    {
+                        <li>
+                            <i class="bi @s.Icon" aria-hidden="true"></i>
+                            <span><b>@s.Name</b>@if (!string.IsNullOrWhiteSpace(s.Description)) {<small>@s.Description</small>}</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+
+    <section class="landing-section row g-4 g-lg-5" aria-labelledby="routeHeading">
+        <div class="col-lg-4">
+            <h2 id="routeHeading">Як дістатися</h2>
+            <address class="landing-lead">@Model.Settlement, @Model.Address</address>
+            <p class="landing-meta">Координати: @Model.Latitude.ToString("0.00000", inv), @Model.Longitude.ToString("0.00000", inv)</p>
+            <a asp-controller="Map" asp-action="Index">Усі пункти на мапі</a>
+        </div>
+        <div class="col-lg-8">
+            <div class="point-map landing-map" data-point-map data-status="@Model.Status"
+                 data-lat="@lat" data-lng="@lng" aria-label="Пункт на мапі"></div>
+        </div>
+    </section>
+
+    @if (occupancy.Count >= 2)
+    {
+        <section class="landing-section" aria-labelledby="peopleHeading">
+            <h2 id="peopleHeading">Людей у пункті</h2>
+            <p class="text-muted">За останніми звітами, місткість пункту: @Model.Capacity.</p>
+            <div class="chart-box"><canvas id="occupancyChart" role="img" aria-label="Кількість людей у пункті за останніми звітами"></canvas></div>
+        </section>
+    }
+
+    <section class="landing-section" aria-labelledby="reportsHeading">
+        <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+            <h2 id="reportsHeading" class="mb-0">Звіти про стан</h2>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="Reports" asp-action="Create" asp-route-pointId="@Model.Id" class="btn btn-sm btn-primary">Додати звіт</a>
+                @if (CurrentUser.CanEdit(Model.Operator?.CommunityId))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">Редагувати</a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">Видалити</a>
+                }
+            </div>
+        </div>
+        @if (Model.Reports.Count == 0)
         {
-            <p>@Model.Description</p>
+            <p class="text-muted">Звітів ще немає. Перший звіт задасть статус пункту.</p>
         }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>Час</th><th>Статус</th><th class="text-center">Світло</th><th class="text-center">Зв'язок</th><th class="text-center">Тепло</th><th>Людей</th><th>Коментар</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Reports)
+                        {
+                            <tr>
+                                <td class="text-nowrap">@r.CreatedAt.ToLocalString()</td>
+                                <td><partial name="_StatusBadge" model="r.Status" /></td>
+                                <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasElectricity" /></td>
+                                <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasInternet" /></td>
+                                <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasHeating" /></td>
+                                <td>@r.Occupancy</td>
+                                <td class="small text-muted">@r.Comment</td>
+                                <td class="text-end"><a asp-controller="Reports" asp-action="Details" asp-route-id="@r.Id">Відкрити</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <a asp-controller="Reports" asp-action="Index" asp-route-pointId="@Model.Id">Усі звіти цього пункту</a>
+        }
+    </section>
+</article>
 
-        <div class="d-flex flex-wrap gap-2">
-            @foreach (var s in Model.Services.OrderBy(s => s.Name))
+<aside class="point-contact fixed-bottom" aria-label="Контакти пункту">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+        @if (Model.Operator is { } op)
+        {
+            <a class="point-contact-who" asp-controller="Operators" asp-action="Details" asp-route-id="@op.Id">
+                <b>@op.Name</b>
+                <small>@(op.Organization ?? "Оператор пункту")</small>
+            </a>
+        }
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            @if (Model.Operator is { } contact)
             {
-                <span class="chip"><i class="bi @s.Icon" aria-hidden="true"></i>@s.Name</span>
+                <a class="btn btn-outline-light" href="tel:@contact.Phone"><i class="bi bi-telephone" aria-hidden="true"></i><span class="d-none d-md-inline ms-2">@contact.Phone</span><span class="visually-hidden d-md-none">Зателефонувати</span></a>
             }
-        </div>
-
-        <dl class="facts">
-            <dt>@Html.DisplayNameFor(m => m.Schedule)</dt>
-            <dd>@(Model.Schedule ?? "Не вказано")</dd>
-            <dt>@Html.DisplayNameFor(m => m.Capacity)</dt>
-            <dd>@Model.Capacity</dd>
-            <dt>@Html.DisplayNameFor(m => m.Operator)</dt>
-            <dd>
-                @if (Model.Operator is not null)
-                {
-                    <a asp-controller="Operators" asp-action="Details" asp-route-id="@Model.OperatorId">@Model.Operator.Name</a><br />
-                    <a href="tel:@Model.Operator.Phone">@Model.Operator.Phone</a>
-                }
-            </dd>
-            <dt>Координати</dt>
-            <dd>@Model.Latitude.ToString("0.00000", inv), @Model.Longitude.ToString("0.00000", inv)</dd>
-            <dt>@Html.DisplayNameFor(m => m.UpdatedAt)</dt>
-            <dd>@Model.UpdatedAt.ToLocalString()</dd>
-        </dl>
-
-        <div class="d-flex flex-wrap gap-2">
-            <a asp-controller="Reports" asp-action="Create" asp-route-pointId="@Model.Id" class="btn btn-primary">Додати звіт про стан</a>
-            @if (CurrentUser.CanEdit(Model.Operator?.CommunityId))
+            @if (!string.IsNullOrEmpty(telegram))
             {
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Редагувати</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Видалити</a>
+                <a class="btn btn-outline-light" href="https://t.me/@telegram" target="_blank" rel="noopener" aria-label="Написати в Telegram"><i class="bi bi-telegram" aria-hidden="true"></i></a>
             }
+            <a class="btn btn-primary" href="@routeUrl" target="_blank" rel="noopener"><i class="bi bi-sign-turn-right" aria-hidden="true"></i><span class="ms-2">Маршрут</span></a>
         </div>
     </div>
-</div>
-
-@if (occupancy.Count >= 2)
-{
-    <h2 class="mt-5 mb-1">Людей у пункті</h2>
-    <p class="text-muted">За останніми звітами, місткість пункту: @Model.Capacity.</p>
-    <div class="chart-box"><canvas id="occupancyChart" role="img" aria-label="Кількість людей у пункті за останніми звітами"></canvas></div>
-}
-
-<h2 class="mt-5 mb-3">Звіти про стан</h2>
-@if (Model.Reports.Count == 0)
-{
-    <p class="text-muted">Звітів ще немає. Перший звіт задасть статус пункту.</p>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr><th>Час</th><th>Статус</th><th class="text-center">Світло</th><th class="text-center">Зв'язок</th><th class="text-center">Тепло</th><th>Людей</th><th>Коментар</th><th></th></tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model.Reports)
-                {
-                    <tr>
-                        <td class="text-nowrap">@r.CreatedAt.ToLocalString()</td>
-                        <td><partial name="_StatusBadge" model="r.Status" /></td>
-                        <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasElectricity" /></td>
-                        <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasInternet" /></td>
-                        <td class="text-center"><partial name="~/Views/Reports/_Flag.cshtml" model="r.HasHeating" /></td>
-                        <td>@r.Occupancy</td>
-                        <td class="small text-muted">@r.Comment</td>
-                        <td class="text-end"><a asp-controller="Reports" asp-action="Details" asp-route-id="@r.Id">Відкрити</a></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-    <a asp-controller="Reports" asp-action="Index" asp-route-pointId="@Model.Id">Усі звіти цього пункту</a>
-}
+</aside>
