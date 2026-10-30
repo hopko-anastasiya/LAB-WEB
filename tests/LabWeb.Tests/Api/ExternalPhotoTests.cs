@@ -25,4 +25,18 @@ public class ExternalPhotoTests(ApiFactory factory)
         Assert.Contains($"property=\"og:image\" content=\"{url}\"", html);
         Assert.Contains($"src=\"{url}\"", html);
     }
+
+    [Fact]
+    public async Task Fake_image_is_rejected_by_content()
+    {
+        var api = factory.CreateAuthorizedClient();
+        var pointId = await api.CreatePoint(await api.CreateOperator());
+        var content = new ByteArrayContent("<script>alert(1)</script>"u8.ToArray());
+        content.Headers.ContentType = new("image/png");
+
+        var response = await api.PostAsync($"/api/points/{pointId}/photo", new MultipartFormDataContent { { content, "file", "photo.png" } });
+
+        var json = await response.ExpectJson(HttpStatusCode.BadRequest);
+        Assert.Contains("не схожий", json["errors"]!["file"]![0]!.GetValue<string>());
+    }
 }
