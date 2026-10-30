@@ -179,6 +179,7 @@ app.MapControllerRoute(
 app.MapHub<PointsHub>("/hubs/points");
 app.MapHub<BoardHub>("/hubs/board");
 app.MapMcp("/mcp");
+app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 
 app.Run();
 

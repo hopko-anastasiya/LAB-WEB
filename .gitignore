@@ -24,3 +24,7 @@ appsettings.Local.json
 
 ## Uploaded files
 src/LabWeb/wwwroot/uploads/
+
+## Node
+node_modules/
+src/LabWeb/wwwroot/app/
