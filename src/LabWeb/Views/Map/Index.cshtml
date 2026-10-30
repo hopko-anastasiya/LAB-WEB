@@ -1,0 +1,48 @@
+@model List<Service>
+@{
+    ViewData["Title"] = "Мапа";
+    ViewData["FullWidth"] = true;
+}
+@section Head {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+}
+
+<div class="map-layout">
+    <div id="map" class="map-canvas" aria-label="Мапа пунктів незламності"></div>
+
+    <aside class="map-panel">
+        <div class="map-panel-head">
+            <h1>Мапа пунктів</h1>
+            <p class="map-summary" id="mapSummary" aria-live="polite">Завантажуємо пункти…</p>
+        </div>
+
+        <div class="map-filters">
+            <div class="filter-group" role="group" aria-label="Статус">
+                <button type="button" class="filter-chip" data-status="Working" aria-pressed="true"><span class="lamp lamp-working"></span>Працює</button>
+                <button type="button" class="filter-chip" data-status="Limited" aria-pressed="true"><span class="lamp lamp-limited"></span>З обмеженнями</button>
+                <button type="button" class="filter-chip" data-status="Closed" aria-pressed="false"><span class="lamp lamp-closed"></span>Не працює</button>
+            </div>
+            <div class="filter-group" role="group" aria-label="Потрібні послуги">
+                @foreach (var s in Model)
+                {
+                    <button type="button" class="filter-chip" data-service="@s.Id" aria-pressed="false"><i class="bi @s.Icon" aria-hidden="true"></i>@s.Name</button>
+                }
+            </div>
+        </div>
+
+        <ul class="map-list" id="mapList"></ul>
+        <p class="map-empty" id="mapEmpty" hidden>Немає пунктів із такими послугами. Зніміть частину фільтрів.</p>
+    </aside>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        window.mapConfig = {
+            pointsUrl: '@Url.Content("~/api/map/points")',
+            detailsUrl: '@Url.Action("Details", "Points", new { id = 0 })'.replace(/0$/, ''),
+            services: @Json.Serialize(Model.ToDictionary(s => s.Id, s => new { s.Name, s.Icon }))
+        };
+    </script>
+    <script src="~/js/map.js" asp-append-version="true"></script>
+}
