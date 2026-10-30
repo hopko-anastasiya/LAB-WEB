@@ -239,7 +239,7 @@ public class ReportBot(
 
         var link = string.IsNullOrWhiteSpace(options.Value.SiteUrl)
             ? ""
-            : $"\n{options.Value.SiteUrl.TrimEnd('/')}/Points/Details/{point.Id}";
+            : $"\n{options.Value.SiteUrl.TrimEnd('/')}/punkt/{point.Id}";
         await api.SendMessageAsync(chatId,
             $"Звіт збережено. «{Html(point.Name)}»: {Lamp(point.Status)} {point.Status.DisplayName()}.{link}", ct: ct);
     }

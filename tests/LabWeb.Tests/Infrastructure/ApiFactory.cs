@@ -27,8 +27,12 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     private readonly Lazy<string> _adminToken;
 
-    public ApiFactory() =>
+    public ApiFactory()
+    {
+        Environment.SetEnvironmentVariable("Auth__Google__ClientId", "test-google-client");
+        Environment.SetEnvironmentVariable("Auth__Google__ClientSecret", "test-google-secret");
         _adminToken = new Lazy<string>(() => CreateUser(SystemAdminEmail, "Тестова громада", Plan.Premium).Token);
+    }
 
     public HttpClient CreateAuthorizedClient() => CreateClientWithToken(_adminToken.Value);
 
@@ -73,8 +77,6 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 ["Telegram:WebhookSecret"] = TelegramSecret,
                 ["Auth:SystemAdmins:0"] = SystemAdminEmail
             }));
-        builder.UseSetting("Auth:Google:ClientId", "test-google-client");
-        builder.UseSetting("Auth:Google:ClientSecret", "test-google-secret");
         builder.ConfigureTestServices(services => services.AddSingleton<ITelegramApi>(Telegram));
     }
 

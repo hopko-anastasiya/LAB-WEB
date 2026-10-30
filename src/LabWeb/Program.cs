@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using System.Text.Json.Serialization;
 using LabWeb.Api;
 using LabWeb.Auth;
@@ -10,6 +11,7 @@ using LabWeb.Services;
 using LabWeb.Telegram;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.WebEncoders;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
@@ -70,6 +72,7 @@ builder.Services.AddSingleton<PointSearchIndex>();
 builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
 builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
 builder.Services.AddOutputCache(ApiCache.AddPolicies);
+builder.Services.Configure<WebEncoderOptions>(o => o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
 builder.AddAppAuth();
 if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
     builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysPath)).SetApplicationName("LabWeb");
@@ -125,6 +128,10 @@ app.UseAuthentication();
 app.UseMiddleware<CurrentUserMiddleware>();
 app.UseAuthorization();
 
+app.MapControllerRoute(
+    name: "point",
+    pattern: "punkt/{id:int}",
+    defaults: new { controller = "Points", action = "Details" });
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

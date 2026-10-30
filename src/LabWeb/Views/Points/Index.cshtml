@@ -1,6 +1,7 @@
 @model List<Point>
 @{
     ViewData["Title"] = "Пункти";
+    ViewData["Description"] = "Список пунктів незламності: адреси, графік, послуги й поточний статус. Знайдіть пункт за населеним пунктом чи послугою.";
     var status = ViewData["status"] as PointStatus?;
 }
 <div class="page-head">
