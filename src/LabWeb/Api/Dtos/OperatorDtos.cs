@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LabWeb.Api.Dtos;
 
-public record OperatorDto(int Id, string Name, string? Organization, string Phone, string? Email, string? Telegram, int PointsCount);
+public record OperatorDto(int Id, string Name, string? Organization, string Phone, string? Email, string? Telegram, int CommunityId, int PointsCount);
 
 public record OperatorRef(int Id, string Name, string Phone);
 

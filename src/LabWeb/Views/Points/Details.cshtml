@@ -60,8 +60,11 @@
 
         <div class="d-flex flex-wrap gap-2">
             <a asp-controller="Reports" asp-action="Create" asp-route-pointId="@Model.Id" class="btn btn-primary">Додати звіт про стан</a>
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Редагувати</a>
-            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Видалити</a>
+            @if (CurrentUser.CanEdit(Model.Operator?.CommunityId))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Редагувати</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Видалити</a>
+            }
         </div>
     </div>
 </div>

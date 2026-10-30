@@ -30,9 +30,11 @@ public class LookupApiController(AppDbContext db) : ApiControllerBase
     }
 
     [HttpGet("operators")]
-    public async Task<ActionResult<IReadOnlyList<LookupItem>>> Operators([FromQuery] LookupQuery query, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<LookupItem>>> Operators([FromQuery] LookupQuery query, [FromQuery] int? communityId, CancellationToken ct)
     {
         var operators = db.Operators.AsNoTracking();
+        if (communityId is not null)
+            operators = operators.Where(o => o.CommunityId == communityId);
         foreach (var word in query.Words())
             operators = operators.Where(o => EF.Functions.ILike(o.Name, word)
                                           || (o.Organization != null && EF.Functions.ILike(o.Organization, word))
@@ -44,9 +46,11 @@ public class LookupApiController(AppDbContext db) : ApiControllerBase
     }
 
     [HttpGet("points")]
-    public async Task<ActionResult<IReadOnlyList<LookupItem>>> Points([FromQuery] LookupQuery query, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<LookupItem>>> Points([FromQuery] LookupQuery query, [FromQuery] int? communityId, CancellationToken ct)
     {
         var points = db.Points.AsNoTracking();
+        if (communityId is not null)
+            points = points.Where(p => p.Operator!.CommunityId == communityId);
         foreach (var word in query.Words())
             points = points.Where(p => EF.Functions.ILike(p.Name, word)
                                     || EF.Functions.ILike(p.Address, word)

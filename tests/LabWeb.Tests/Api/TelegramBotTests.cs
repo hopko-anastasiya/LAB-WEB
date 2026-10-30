@@ -8,7 +8,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class TelegramBotTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
     private static long _ids = Random.Shared.Next(1_000, 1_000_000);
 
     private async Task<HttpResponseMessage> Send(TgUpdate update, string secret = ApiFactory.TelegramSecret)

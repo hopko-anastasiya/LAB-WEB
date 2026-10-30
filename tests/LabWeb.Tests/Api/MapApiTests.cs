@@ -7,7 +7,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class MapApiTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
 
     private async Task<JsonArray> MapPoints(string query = "") =>
         (await (await _client.GetAsync($"/api/map/points{query}")).ExpectJson(HttpStatusCode.OK)).AsArray();

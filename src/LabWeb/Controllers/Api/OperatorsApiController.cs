@@ -1,4 +1,6 @@
 using LabWeb.Api;
+using LabWeb.Auth;
+using Microsoft.AspNetCore.Authorization;
 using LabWeb.Api.Dtos;
 using LabWeb.Data;
 using LabWeb.Models;
@@ -22,7 +24,7 @@ public class OperatorsApiController(AppDbContext db) : ApiControllerBase
         }
 
         var projected = query.OrderBy(o => o.Id)
-            .Select(o => new OperatorDto(o.Id, o.Name, o.Organization, o.Phone, o.Email, o.Telegram, o.Points.Count));
+            .Select(o => new OperatorDto(o.Id, o.Name, o.Organization, o.Phone, o.Email, o.Telegram, o.CommunityId, o.Points.Count));
         return await projected.ToPagedResultAsync(page, Request, x => x, ct);
     }
 
@@ -31,39 +33,41 @@ public class OperatorsApiController(AppDbContext db) : ApiControllerBase
     {
         var dto = await db.Operators.AsNoTracking()
             .Where(o => o.Id == id)
-            .Select(o => new OperatorDto(o.Id, o.Name, o.Organization, o.Phone, o.Email, o.Telegram, o.Points.Count))
+            .Select(o => new OperatorDto(o.Id, o.Name, o.Organization, o.Phone, o.Email, o.Telegram, o.CommunityId, o.Points.Count))
             .FirstOrDefaultAsync(ct);
         return dto is null ? NotFoundProblem($"Оператора {id} не знайдено") : dto;
     }
 
-    [HttpPost]
+    [HttpPost, Authorize(Policy = Policies.ApiWriter)]
     public async Task<ActionResult<OperatorDto>> Create(OperatorInput input, CancellationToken ct)
     {
-        var op = new Operator();
+        var op = new Operator { CommunityId = CurrentUser.CommunityId!.Value };
         Apply(input, op);
         db.Operators.Add(op);
         await db.SaveChangesAsync(ct);
 
-        var dto = new OperatorDto(op.Id, op.Name, op.Organization, op.Phone, op.Email, op.Telegram, 0);
+        var dto = new OperatorDto(op.Id, op.Name, op.Organization, op.Phone, op.Email, op.Telegram, op.CommunityId, 0);
         return CreatedAtAction(nameof(Get), new { id = op.Id }, dto);
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<ActionResult<OperatorDto>> Update(int id, OperatorInput input, CancellationToken ct)
     {
         var op = await db.Operators.FindAsync([id], ct);
         if (op is null) return NotFoundProblem($"Оператора {id} не знайдено");
+        if (!CurrentUser.CanEdit(op.CommunityId)) return ForbiddenProblem("Оператор належить іншій громаді");
 
         Apply(input, op);
         await db.SaveChangesAsync(ct);
         return await Get(id, ct);
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}"), Authorize(Policy = Policies.ApiWriter)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
         var op = await db.Operators.Include(o => o.Points).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (op is null) return NotFoundProblem($"Оператора {id} не знайдено");
+        if (!CurrentUser.CanEdit(op.CommunityId)) return ForbiddenProblem("Оператор належить іншій громаді");
         if (op.Points.Count > 0)
             return ConflictProblem($"За оператором закріплено пунктів: {op.Points.Count}. Спершу призначте їм іншого оператора.");
 

@@ -9,7 +9,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class LiveUpdatesTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
     private static readonly TimeSpan Wait = TimeSpan.FromSeconds(10);
 
     private HubConnection Connect() =>

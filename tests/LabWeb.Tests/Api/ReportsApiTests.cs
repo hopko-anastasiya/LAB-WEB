@@ -6,7 +6,7 @@ namespace LabWeb.Tests.Api;
 [Collection(ApiCollection.Name)]
 public class ReportsApiTests(ApiFactory factory)
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAuthorizedClient();
 
     private async Task<string> PointStatus(int pointId) =>
         (await (await _client.GetAsync($"/api/points/{pointId}")).ExpectJson(HttpStatusCode.OK))["status"]!.GetValue<string>();

@@ -1,4 +1,6 @@
 using LabWeb.Api;
+using LabWeb.Auth;
+using Microsoft.AspNetCore.Authorization;
 using LabWeb.Api.Dtos;
 using LabWeb.Data;
 using LabWeb.Models;
@@ -32,7 +34,7 @@ public class ServicesApiController(AppDbContext db) : ApiControllerBase
         return dto is null ? NotFoundProblem($"Послугу {id} не знайдено") : dto;
     }
 
-    [HttpPost]
+    [HttpPost, Authorize(Policy = Policies.ApiSystemAdmin)]
     public async Task<ActionResult<ServiceDto>> Create(ServiceInput input, CancellationToken ct)
     {
         var name = input.Name.Trim();
@@ -47,7 +49,7 @@ public class ServicesApiController(AppDbContext db) : ApiControllerBase
         return CreatedAtAction(nameof(Get), new { id = service.Id }, dto);
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}"), Authorize(Policy = Policies.ApiSystemAdmin)]
     public async Task<ActionResult<ServiceDto>> Update(int id, ServiceInput input, CancellationToken ct)
     {
         var service = await db.Services.FindAsync([id], ct);
@@ -64,7 +66,7 @@ public class ServicesApiController(AppDbContext db) : ApiControllerBase
         return await Get(id, ct);
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}"), Authorize(Policy = Policies.ApiSystemAdmin)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
         var service = await db.Services.FindAsync([id], ct);

@@ -25,10 +25,13 @@
         {
             <blockquote class="blockquote border-start border-3 ps-3"><p class="mb-0">@Model.Comment</p></blockquote>
         }
-        <div class="d-flex gap-2 mt-3">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
-            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Видалити</a>
-        </div>
+        @if (CurrentUser.CanEdit(Model.Point?.Operator?.CommunityId))
+        {
+            <div class="d-flex gap-2 mt-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Видалити</a>
+            </div>
+        }
     </div>
     @if (!string.IsNullOrEmpty(Model.PhotoPath))
     {

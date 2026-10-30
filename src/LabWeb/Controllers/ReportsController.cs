@@ -1,20 +1,22 @@
+using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Models;
 using LabWeb.Models.ViewModels;
 using LabWeb.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabWeb.Controllers;
 
-public class ReportsController(AppDbContext db, IFileStorage files, PointStatusService statuses) : Controller
+public class ReportsController(AppDbContext db, IFileStorage files, PointStatusService statuses, CurrentUser currentUser) : Controller
 {
     private const string PhotoFolder = "reports";
 
     public async Task<IActionResult> Index(int? pointId)
     {
-        var query = db.StatusReports.AsNoTracking().Include(r => r.Point).AsQueryable();
+        var query = db.StatusReports.AsNoTracking().Include(r => r.Point).ThenInclude(p => p!.Operator).AsQueryable();
         if (pointId is not null)
             query = query.Where(r => r.PointId == pointId);
 
@@ -26,18 +28,19 @@ public class ReportsController(AppDbContext db, IFileStorage files, PointStatusS
     public async Task<IActionResult> Details(int id)
     {
         var report = await db.StatusReports.AsNoTracking()
-            .Include(r => r.Point)
+            .Include(r => r.Point).ThenInclude(p => p!.Operator)
             .FirstOrDefaultAsync(r => r.Id == id);
         return report is null ? NotFound() : View(report);
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Create(int? pointId)
     {
         var vm = new ReportFormViewModel();
         if (pointId is not null)
         {
             var point = await db.Points.FindAsync(pointId);
-            if (point is not null)
+            if (point is not null && await OwnsPoint(point.Id))
             {
                 vm.Report.PointId = point.Id;
                 vm.Report.Status = point.Status;
@@ -48,12 +51,13 @@ public class ReportsController(AppDbContext db, IFileStorage files, PointStatusS
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Create(ReportFormViewModel vm)
     {
         ValidatePhoto(vm.Photo);
         var point = await db.Points.FindAsync(vm.Report.PointId);
-        if (point is null)
-            ModelState.AddModelError("Report.PointId", "Оберіть пункт.");
+        if (point is null || !await OwnsPoint(point.Id))
+            ModelState.AddModelError("Report.PointId", "Оберіть пункт своєї громади.");
 
         if (!ModelState.IsValid)
         {
@@ -75,25 +79,29 @@ public class ReportsController(AppDbContext db, IFileStorage files, PointStatusS
         return RedirectToAction("Details", "Points", new { id = report.PointId });
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Edit(int id)
     {
         var report = await db.StatusReports.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
         if (report is null) return NotFound();
+        if (!await OwnsPoint(report.PointId)) return Forbid();
         var vm = new ReportFormViewModel { Report = report };
         await FillLookups(vm);
         return View(vm);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Edit(int id, ReportFormViewModel vm)
     {
         if (id != vm.Report.Id) return NotFound();
         var report = await db.StatusReports.FindAsync(id);
         if (report is null) return NotFound();
+        if (!await OwnsPoint(report.PointId)) return Forbid();
 
         ValidatePhoto(vm.Photo);
-        if (!await db.Points.AnyAsync(p => p.Id == vm.Report.PointId))
-            ModelState.AddModelError("Report.PointId", "Оберіть пункт.");
+        if (!await OwnsPoint(vm.Report.PointId))
+            ModelState.AddModelError("Report.PointId", "Оберіть пункт своєї громади.");
 
         if (!ModelState.IsValid)
         {
@@ -120,19 +128,23 @@ public class ReportsController(AppDbContext db, IFileStorage files, PointStatusS
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Delete(int id)
     {
         var report = await db.StatusReports.AsNoTracking()
             .Include(r => r.Point)
             .FirstOrDefaultAsync(r => r.Id == id);
-        return report is null ? NotFound() : View(report);
+        if (report is null) return NotFound();
+        return await OwnsPoint(report.PointId) ? View(report) : Forbid();
     }
 
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var report = await db.StatusReports.FindAsync(id);
         if (report is null) return NotFound();
+        if (!await OwnsPoint(report.PointId)) return Forbid();
 
         var pointId = report.PointId;
         var photo = report.PhotoPath;
@@ -145,6 +157,9 @@ public class ReportsController(AppDbContext db, IFileStorage files, PointStatusS
         return RedirectToAction("Details", "Points", new { id = pointId });
     }
 
+
+    private async Task<bool> OwnsPoint(int pointId) =>
+        currentUser.CanEdit(await db.Points.Where(p => p.Id == pointId).Select(p => (int?)p.Operator!.CommunityId).FirstOrDefaultAsync());
 
     private static void CopyEditableFields(StatusReport src, StatusReport dst)
     {

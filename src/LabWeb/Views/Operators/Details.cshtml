@@ -25,10 +25,13 @@
             <a href="https://t.me/@Model.Telegram.TrimStart('@')" target="_blank" rel="noopener"><i class="bi bi-telegram"></i> @Model.Telegram</a>
         }
     </div>
-    <div class="mt-3 d-flex gap-2">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
-        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Видалити</a>
-    </div>
+    @if (CurrentUser.CanEdit(Model.CommunityId))
+    {
+        <div class="mt-3 d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Редагувати</a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Видалити</a>
+        </div>
+    }
 </div>
 <h2 class="h5">Пункти оператора (@Model.Points.Count)</h2>
 <ul class="list-group">

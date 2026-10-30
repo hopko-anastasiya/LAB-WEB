@@ -1,14 +1,16 @@
+using LabWeb.Auth;
 using LabWeb.Data;
 using LabWeb.Models;
 using LabWeb.Models.ViewModels;
 using LabWeb.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabWeb.Controllers;
 
-public class PointsController(AppDbContext db, IFileStorage files) : Controller
+public class PointsController(AppDbContext db, IFileStorage files, CurrentUser currentUser) : Controller
 {
     private const string PhotoFolder = "points";
 
@@ -50,6 +52,7 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
         return point is null ? NotFound() : View(point);
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Create()
     {
         var vm = new PointFormViewModel { Point = { Latitude = 50.4501, Longitude = 30.5234, Settlement = "Київ" } };
@@ -58,6 +61,7 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Create(PointFormViewModel vm)
     {
         ValidatePhoto(vm.Photo);
@@ -80,10 +84,12 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
         return RedirectToAction(nameof(Details), new { id = point.Id });
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Edit(int id)
     {
-        var point = await db.Points.AsNoTracking().Include(p => p.Services).FirstOrDefaultAsync(p => p.Id == id);
+        var point = await db.Points.AsNoTracking().Include(p => p.Services).Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id);
         if (point is null) return NotFound();
+        if (!currentUser.CanEdit(point.Operator?.CommunityId)) return Forbid();
 
         var vm = new PointFormViewModel
         {
@@ -95,12 +101,14 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Edit(int id, PointFormViewModel vm)
     {
         if (id != vm.Point.Id) return NotFound();
 
-        var point = await db.Points.Include(p => p.Services).FirstOrDefaultAsync(p => p.Id == id);
+        var point = await db.Points.Include(p => p.Services).Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id);
         if (point is null) return NotFound();
+        if (!currentUser.CanEdit(point.Operator?.CommunityId)) return Forbid();
 
         ValidatePhoto(vm.Photo);
         await ValidateOperator(vm.Point.OperatorId);
@@ -129,20 +137,24 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> Delete(int id)
     {
         var point = await db.Points.AsNoTracking()
             .Include(p => p.Operator)
             .Include(p => p.Reports)
             .FirstOrDefaultAsync(p => p.Id == id);
-        return point is null ? NotFound() : View(point);
+        if (point is null) return NotFound();
+        return currentUser.CanEdit(point.Operator?.CommunityId) ? View(point) : Forbid();
     }
 
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+    [Authorize(Policy = Policies.Member)]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var point = await db.Points.Include(p => p.Reports).FirstOrDefaultAsync(p => p.Id == id);
+        var point = await db.Points.Include(p => p.Reports).Include(p => p.Operator).FirstOrDefaultAsync(p => p.Id == id);
         if (point is null) return NotFound();
+        if (!currentUser.CanEdit(point.Operator?.CommunityId)) return Forbid();
 
         var photos = point.Reports.Select(r => r.PhotoPath).Append(point.PhotoPath).ToList();
         db.Points.Remove(point);
@@ -178,8 +190,8 @@ public class PointsController(AppDbContext db, IFileStorage files) : Controller
 
     private async Task ValidateOperator(int operatorId)
     {
-        if (!await db.Operators.AnyAsync(o => o.Id == operatorId))
-            ModelState.AddModelError("Point.OperatorId", "Оберіть оператора.");
+        if (!await db.Operators.AnyAsync(o => o.Id == operatorId && o.CommunityId == currentUser.CommunityId))
+            ModelState.AddModelError("Point.OperatorId", "Оберіть оператора своєї громади.");
     }
 
     private async Task FillLookups(PointFormViewModel vm)
