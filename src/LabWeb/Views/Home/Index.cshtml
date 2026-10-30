@@ -2,16 +2,17 @@
 @{
     ViewData["Title"] = "Головна";
     int[][] buildings = [[4, 4], [6, 7], [3, 3], [7, 5], [4, 8], [5, 3], [3, 6], [6, 4], [4, 5]];
-    var totalWindows = buildings.Sum(b => b[0] * b[1]);
-    var slots = new Dictionary<int, (SkylinePoint Point, int Order)>();
-    for (var i = 0; i < Model.Skyline.Count; i++)
+    var windows = buildings.SelectMany((b, k) => Enumerable.Range(0, b[0] * b[1]).Select(w => (k, Row: w / b[0], Col: w % b[0]))).ToList();
+    var random = new Random(17);
+    var order = Enumerable.Range(0, windows.Count).OrderBy(_ => random.Next()).ToList();
+    var lit = new Dictionary<int, int>();
+    foreach (var i in order.TakeWhile(_ => lit.Count < windows.Count / 5))
     {
-        var slot = (int)((i + 0.5) * totalWindows / Math.Max(Model.Skyline.Count, 1)) % totalWindows;
-        while (slots.ContainsKey(slot)) slot = (slot + 1) % totalWindows;
-        slots[slot] = (Model.Skyline[i], i);
+        var near = lit.Keys.Any(j => windows[j].k == windows[i].k && Math.Abs(windows[j].Row - windows[i].Row) + Math.Abs(windows[j].Col - windows[i].Col) <= 1);
+        if (!near) lit[i] = lit.Count;
     }
+    var blinking = order.Skip(lit.Count).Take(8).ToHashSet();
     var index = 0;
-    var step = Math.Min(1.0, 18.0 / Math.Max(Model.Skyline.Count, 1));
 }
 <section class="hero">
     <h1>Де зараз є світло</h1>
@@ -21,28 +22,29 @@
         <a asp-controller="Reports" asp-action="Create" class="btn btn-outline-light btn-lg">Повідомити про стан</a>
     </div>
 
-    <div class="skyline">
+    <div class="skyline" aria-hidden="true">
         @foreach (var b in buildings)
         {
             <div class="building" style="--cols:@b[0]">
                 @for (var w = 0; w < b[0] * b[1]; w++, index++)
                 {
-                    if (slots.TryGetValue(index, out var s))
+                    if (lit.TryGetValue(index, out var n))
                     {
-                        <a class="win @(s.Point.Lit ? "lit" : "")" style="--i:@((s.Order * step).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))"
-                           asp-controller="Points" asp-action="Details" asp-route-id="@s.Point.Id"
-                           title="@s.Point.Name (@s.Point.Settlement): @(s.Point.Lit ? "є світло" : "світла немає")"
-                           aria-label="@s.Point.Name, @(s.Point.Lit ? "є світло" : "світла немає")"></a>
+                        <span class="win lit" style="--i:@n"></span>
+                    }
+                    else if (blinking.Contains(index))
+                    {
+                        <span class="win blink" style="--d:@(random.Next(40, 90))s;--o:@(random.Next(5, 40))s"></span>
                     }
                     else
                     {
-                        <span class="win" aria-hidden="true"></span>
+                        <span class="win"></span>
                     }
                 }
             </div>
         }
     </div>
-    <p class="hero-count">Світло є в <strong>@Model.PointsLit</strong> з @Model.PointsTotal пунктів. Кожне жовте вікно веде до пункту.</p>
+    <p class="hero-count">Світло є в <strong>@Model.PointsLit</strong> з @Model.PointsTotal пунктів.</p>
 </section>
 
 <div class="row g-4 g-lg-5">

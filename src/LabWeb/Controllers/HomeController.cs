@@ -18,18 +18,9 @@ public class HomeController(AppDbContext db) : Controller
             PointsWorking = await db.Points.CountAsync(p => p.Status == PointStatus.Working),
             OperatorsTotal = await db.Operators.CountAsync(),
             ReportsToday = await db.StatusReports.CountAsync(r => r.CreatedAt >= since),
-            Skyline = (await db.Points.AsNoTracking()
-                .OrderBy(p => p.Id)
-                .Select(p => new
-                {
-                    p.Id, p.Name, p.Settlement, p.Status,
-                    Electricity = p.Reports.OrderByDescending(r => r.CreatedAt)
-                        .Select(r => (bool?)r.HasElectricity).FirstOrDefault()
-                })
-                .ToListAsync())
-                .Select(p => new SkylinePoint(p.Id, p.Name, p.Settlement, p.Status,
-                    p.Status != PointStatus.Closed && (p.Electricity ?? p.Status == PointStatus.Working)))
-                .ToList(),
+            PointsLit = await db.Points.CountAsync(p => p.Status != PointStatus.Closed
+                && (p.Reports.OrderByDescending(r => r.CreatedAt).Select(r => (bool?)r.HasElectricity).FirstOrDefault()
+                    ?? p.Status == PointStatus.Working)),
             Points = await db.Points.AsNoTracking()
                 .Include(p => p.Services)
                 .OrderBy(p => p.Status == PointStatus.Working ? 0 : p.Status == PointStatus.Limited ? 1 : 2)
