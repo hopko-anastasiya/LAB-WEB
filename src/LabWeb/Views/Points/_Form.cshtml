@@ -44,6 +44,12 @@
         <input asp-for="Point.Schedule" class="form-control" placeholder="напр. Цілодобово" />
     </div>
 
+    <div class="col-12">
+        <div class="point-map point-map-pick" data-point-map data-lat-input="#Point_Latitude" data-lng-input="#Point_Longitude"
+             data-status="@Model.Point.Status" aria-label="Мапа для вибору координат"></div>
+        <p class="form-text text-muted mb-0">Клацніть на мапі або перетягніть маркер, щоб уточнити координати.</p>
+    </div>
+
     <div class="col-md-6">
         <label asp-for="Point.OperatorId" class="form-label"></label>
         <select asp-for="Point.OperatorId" asp-items="Model.Operators" class="form-select">

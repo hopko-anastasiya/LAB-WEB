@@ -475,3 +475,13 @@ a { text-underline-offset: .2em; }
     .map-panel { border-left: 0; border-top: 1px solid var(--night-line); }
     .map-list { overflow: visible; }
 }
+
+.point-map {
+    height: 220px;
+    border-radius: .75rem;
+    border: 1px solid var(--night-line);
+    overflow: hidden;
+}
+.point-map.leaflet-container { background: #0e1830; }
+.point-map .leaflet-tile-pane { filter: invert(1) hue-rotate(185deg) saturate(.45) brightness(.62) contrast(1.15); }
+.point-map-pick { height: 280px; cursor: crosshair; }

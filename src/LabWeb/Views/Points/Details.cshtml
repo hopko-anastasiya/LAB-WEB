@@ -3,6 +3,11 @@
     ViewData["Title"] = Model.Name;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
 }
+@section Head { <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" /> }
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/point-map.js" asp-append-version="true"></script>
+}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-action="Index">Пункти</a></li>
@@ -13,6 +18,10 @@
 <div class="row g-5">
     <div class="col-lg-5">
         <img src="@(Model.PhotoPath ?? Url.Content("~/img/placeholder.svg"))" class="point-photo" alt="@Model.Name" />
+        <div class="point-map mt-3" data-point-map data-status="@Model.Status"
+             data-lat="@Model.Latitude.ToString(inv)" data-lng="@Model.Longitude.ToString(inv)"
+             aria-label="Пункт на мапі"></div>
+        <a class="d-inline-block mt-2" asp-controller="Map" asp-action="Index">Усі пункти на мапі</a>
     </div>
     <div class="col-lg-7">
         <partial name="_StatusBadge" model="Model.Status" />
