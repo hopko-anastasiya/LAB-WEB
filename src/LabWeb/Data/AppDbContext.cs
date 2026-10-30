@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Point> Points => Set<Point>();
     public DbSet<Service> Services => Set<Service>();
     public DbSet<StatusReport> StatusReports => Set<StatusReport>();
+    public DbSet<Settlement> Settlements => Set<Settlement>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -47,6 +48,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(x => new { x.PointId, x.CreatedAt });
+        });
+
+        b.Entity<Settlement>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.Region).HasMaxLength(120);
+            e.HasIndex(x => x.Name);
         });
     }
 }
