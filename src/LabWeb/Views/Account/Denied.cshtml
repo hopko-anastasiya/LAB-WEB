@@ -1,0 +1,21 @@
+@model CurrentUser
+@{
+    ViewData["Title"] = "Немає доступу";
+}
+<div class="auth-page">
+    <div class="auth-intro">
+        <h1>Немає доступу</h1>
+        @if (Model.IsSignedIn && Model.CommunityId is null)
+        {
+            <p class="lead-muted">Змінювати дані можуть лише учасники громади. Створіть свою громаду або
+                приєднайтеся до наявної за кодом запрошення.</p>
+            <a asp-controller="Community" asp-action="Start" class="btn btn-primary">Приєднатися до громади</a>
+        }
+        else
+        {
+            <p class="lead-muted">Ці дані належать іншій громаді або потрібні права адміністратора.
+                Переглядати їх можна, а змінювати може лише громада, якій вони належать.</p>
+            <a asp-controller="Map" asp-action="Index" class="btn btn-outline-light">До мапи</a>
+        }
+    </div>
+</div>

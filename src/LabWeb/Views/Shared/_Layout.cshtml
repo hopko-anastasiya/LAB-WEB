@@ -32,6 +32,36 @@
                         <li class="nav-item"><a class="nav-link @(current == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">Звіти</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Operators" ? "active" : "")" asp-controller="Operators" asp-action="Index">Оператори</a></li>
                         <li class="nav-item"><a class="nav-link @(current == "Services" ? "active" : "")" asp-controller="Services" asp-action="Index">Послуги</a></li>
+                        @if (CurrentUser.IsSignedIn)
+                        {
+                            <li class="nav-item dropdown user-menu">
+                                <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="user-initial" aria-hidden="true">@CurrentUser.User!.Name[..1]</span>@CurrentUser.User.Name
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    @if (CurrentUser.Community is { } community)
+                                    {
+                                        <li><span class="dropdown-item-text user-community">@community.Name</span></li>
+                                        <li><a class="dropdown-item" asp-controller="Community" asp-action="Index">Моя громада</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Community" asp-action="Start">Приєднатися до громади</a></li>
+                                    }
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">Профіль і API-токен</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item">Вийти</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="btn btn-sm btn-outline-light ms-lg-2 mt-2 mt-lg-0" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">Увійти</a></li>
+                        }
                     </ul>
                 </div>
             </div>
