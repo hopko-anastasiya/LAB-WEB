@@ -15,7 +15,14 @@
 
     <div class="col-md-4">
         <label asp-for="Point.Settlement" class="form-label"></label>
-        <input asp-for="Point.Settlement" class="form-control" />
+        <select asp-for="Point.Settlement" class="form-select" data-autocomplete="settlement"
+                data-url="@Url.Content("~/api/lookup/settlements")" data-placeholder="Почніть вводити назву">
+            <option value=""></option>
+            @if (!string.IsNullOrEmpty(Model.Point.Settlement))
+            {
+                <option value="@Model.Point.Settlement" selected>@Model.Point.Settlement</option>
+            }
+        </select>
         <span asp-validation-for="Point.Settlement" class="text-danger small"></span>
     </div>
     <div class="col-md-8">
@@ -52,8 +59,9 @@
 
     <div class="col-md-6">
         <label asp-for="Point.OperatorId" class="form-label"></label>
-        <select asp-for="Point.OperatorId" asp-items="Model.Operators" class="form-select">
-            <option value="">— оберіть оператора —</option>
+        <select asp-for="Point.OperatorId" asp-items="Model.Operators" class="form-select" data-autocomplete="lookup"
+                data-url="@Url.Content("~/api/lookup/operators")" data-placeholder="Ім'я, організація або Telegram">
+            <option value=""></option>
         </select>
         <span asp-validation-for="Point.OperatorId" class="text-danger small"></span>
     </div>

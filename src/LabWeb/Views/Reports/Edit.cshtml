@@ -10,4 +10,9 @@
         <a asp-action="Details" asp-route-id="@Model.Report.Id" class="btn btn-outline-secondary">Скасувати</a>
     </div>
 </form>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Head { <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" /> }
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+    <script src="~/js/autocomplete.js" asp-append-version="true"></script>
+}

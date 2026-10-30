@@ -516,3 +516,45 @@ a { text-underline-offset: .2em; }
         from { background: var(--lamp-soft); }
     }
 }
+
+.select2-container--default .select2-selection--single {
+    height: calc(1.5em + .75rem + 2px);
+    background-color: #0f1a31;
+    border: 1px solid var(--night-line);
+    border-radius: var(--bs-border-radius);
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--ink);
+    line-height: calc(1.5em + .75rem);
+    padding-left: .75rem;
+    padding-right: 2.5rem;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder { color: #6c7a96; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 100%; right: .5rem; }
+.select2-container--default .select2-selection--single .select2-selection__arrow b { border-top-color: var(--ink-muted); }
+.select2-container--default .select2-selection--single .select2-selection__clear { color: var(--ink-muted); height: 100%; margin-right: 1.5rem; }
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--lamp);
+    box-shadow: 0 0 0 .2rem var(--lamp-soft);
+}
+.select2-dropdown {
+    background: var(--night-raised);
+    border-color: var(--night-line);
+    color: var(--ink);
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background: #0f1a31;
+    border: 1px solid var(--night-line);
+    border-radius: .35rem;
+    color: var(--ink);
+    padding: .35rem .5rem;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field:focus { outline: 2px solid var(--lamp); outline-offset: 0; }
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable { background: var(--lamp-soft); color: var(--ink); }
+.select2-container--default .select2-results__option--selected { background: rgba(255, 255, 255, .05); }
+.select2-results__message { color: var(--ink-muted); }
+.select2-results__option { padding: .45rem .75rem; }
+.ac-option { display: grid; }
+.ac-option small { color: var(--ink-muted); font-size: .8rem; }
+.input-validation-error + .select2-container .select2-selection--single { border-color: var(--danger); }

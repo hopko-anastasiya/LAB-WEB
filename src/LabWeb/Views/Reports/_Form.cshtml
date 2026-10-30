@@ -4,8 +4,9 @@
 <div class="row g-3">
     <div class="col-md-8">
         <label asp-for="Report.PointId" class="form-label"></label>
-        <select asp-for="Report.PointId" asp-items="Model.Points" class="form-select">
-            <option value="">— оберіть пункт —</option>
+        <select asp-for="Report.PointId" asp-items="Model.Points" class="form-select" data-autocomplete="lookup"
+                data-url="@Url.Content("~/api/lookup/points")" data-placeholder="Назва, адреса або населений пункт">
+            <option value=""></option>
         </select>
         <span asp-validation-for="Report.PointId" class="text-danger small"></span>
     </div>
