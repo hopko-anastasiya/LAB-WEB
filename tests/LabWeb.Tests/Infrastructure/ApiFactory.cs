@@ -1,8 +1,11 @@
 using LabWeb.Data;
 using Microsoft.AspNetCore.Hosting;
+using LabWeb.Telegram;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace LabWeb.Tests.Infrastructure;
@@ -11,7 +14,11 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private const string TestDatabase = "labweb_tests";
 
+    public const string TelegramSecret = "test-secret";
+
     public string ConnectionString { get; } = BuildConnectionString();
+
+    public FakeTelegramApi Telegram { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -19,8 +26,11 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.ConfigureAppConfiguration((_, config) =>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Default"] = ConnectionString
+                ["ConnectionStrings:Default"] = ConnectionString,
+                ["Telegram:BotToken"] = "test-token",
+                ["Telegram:WebhookSecret"] = TelegramSecret
             }));
+        builder.ConfigureTestServices(services => services.AddSingleton<ITelegramApi>(Telegram));
     }
 
     public async Task InitializeAsync()

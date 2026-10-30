@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using LabWeb.Data;
 using LabWeb.Hubs;
 using LabWeb.Services;
+using LabWeb.Telegram;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,11 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
+builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
+builder.Services.AddHttpClient<ITelegramApi, TelegramApi>(c => c.Timeout = TimeSpan.FromSeconds(40));
+builder.Services.AddSingleton<BotSessions>();
+builder.Services.AddScoped<ReportBot>();
+builder.Services.AddHostedService<TelegramBotService>();
 builder.Services.AddSignalR().AddJsonProtocol(o =>
 {
     o.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
