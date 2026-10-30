@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Інструкції громади";
+}
+<div class="guide" id="guide" data-hub="@Url.Content("~/hubs/guide")" data-community="@CurrentUser.CommunityId">
+    <div class="page-head mb-2">
+        <div>
+            <h1>Інструкції громади</h1>
+            <p class="text-muted mb-0">@CurrentUser.Community?.Name</p>
+        </div>
+        <p class="guide-state" id="guideState" aria-live="polite">Підключаємось…</p>
+    </div>
+    <p class="guide-help">Enter додає новий рядок. На початку рядка напишіть <code># </code> для заголовка або <code>- </code> для списку.
+        Backspace у порожньому рядку видаляє його. Рядки можна перетягувати за значок ліворуч.</p>
+    <div class="guide-doc" id="guideDoc"></div>
+    <button type="button" class="btn btn-sm btn-outline-secondary mt-3" id="guideAdd"><i class="bi bi-plus-lg" aria-hidden="true"></i> Додати рядок</button>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/guide.js" asp-append-version="true"></script>
+}

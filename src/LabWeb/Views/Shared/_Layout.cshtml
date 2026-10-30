@@ -1,7 +1,7 @@
 @{
     var seoController = ViewContext.RouteData.Values["controller"]?.ToString();
     var seoAction = ViewContext.RouteData.Values["action"]?.ToString();
-    var noIndex = seoController is "Account" or "Community" or "Analytics" or "Board" or "Assistant" or "Notifications"
+    var noIndex = seoController is "Account" or "Community" or "Analytics" or "Board" or "Assistant" or "Notifications" or "Guide"
         || seoAction is "Create" or "Edit" or "Delete" or "Error";
     var pageTitle = ViewData["Title"] is string title ? $"{title} — Незламні" : "Незламні";
     var pageDescription = ViewData["Description"] as string
@@ -75,6 +75,7 @@
                                     {
                                         <li><span class="dropdown-item-text user-community">@community.Name</span></li>
                                         <li><a class="dropdown-item" asp-controller="Community" asp-action="Index">Моя громада</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Guide" asp-action="Index">Інструкції громади</a></li>
                                         <feature name="@Features.Analytics">
                                             <li><a class="dropdown-item" asp-controller="Analytics" asp-action="Index">Аналітика</a></li>
                                         </feature>
