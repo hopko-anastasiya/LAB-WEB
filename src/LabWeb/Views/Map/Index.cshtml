@@ -14,6 +14,7 @@
         <div class="map-panel-head">
             <h1>Мапа пунктів</h1>
             <p class="map-summary" id="mapSummary" aria-live="polite">Завантажуємо пункти…</p>
+            <p class="map-live" id="mapLive" data-state="connecting">Підключаємось до оновлень…</p>
         </div>
 
         <div class="map-filters">
@@ -37,9 +38,11 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script>
         window.mapConfig = {
             pointsUrl: '@Url.Content("~/api/map/points")',
+            hubUrl: '@Url.Content("~/hubs/points")',
             detailsUrl: '@Url.Action("Details", "Points", new { id = 0 })'.replace(/0$/, ''),
             services: @Json.Serialize(Model.ToDictionary(s => s.Id, s => new { s.Name, s.Icon }))
         };
