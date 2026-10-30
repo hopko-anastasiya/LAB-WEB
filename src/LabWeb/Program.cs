@@ -51,7 +51,8 @@ builder.Services.AddControllersWithViews(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"),
+        npgsql => npgsql.EnableRetryOnFailure()));
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
