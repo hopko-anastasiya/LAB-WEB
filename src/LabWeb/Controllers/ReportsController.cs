@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LabWeb.Controllers;
 
-public class ReportsController(AppDbContext db, IFileStorage files) : Controller
+public class ReportsController(AppDbContext db, IFileStorage files, PointStatusService statuses) : Controller
 {
     private const string PhotoFolder = "reports";
 
@@ -68,8 +68,7 @@ public class ReportsController(AppDbContext db, IFileStorage files) : Controller
             report.PhotoPath = await files.SaveAsync(vm.Photo, PhotoFolder);
 
         db.StatusReports.Add(report);
-        point!.Status = report.Status;
-        point.UpdatedAt = report.CreatedAt;
+        statuses.ApplyNewReport(point!, report);
 
         await db.SaveChangesAsync();
         TempData["Success"] = "Звіт додано, статус пункту оновлено.";
@@ -113,9 +112,9 @@ public class ReportsController(AppDbContext db, IFileStorage files) : Controller
         }
 
         await db.SaveChangesAsync();
-        await RecalculatePointStatus(report.PointId);
+        await statuses.RecalculateAsync(report.PointId);
         if (oldPointId != report.PointId)
-            await RecalculatePointStatus(oldPointId);
+            await statuses.RecalculateAsync(oldPointId);
 
         TempData["Success"] = "Зміни збережено.";
         return RedirectToAction(nameof(Details), new { id });
@@ -140,24 +139,12 @@ public class ReportsController(AppDbContext db, IFileStorage files) : Controller
         db.StatusReports.Remove(report);
         await db.SaveChangesAsync();
         await files.DeleteAsync(photo);
-        await RecalculatePointStatus(pointId);
+        await statuses.RecalculateAsync(pointId);
 
         TempData["Success"] = "Звіт видалено.";
         return RedirectToAction("Details", "Points", new { id = pointId });
     }
 
-    private async Task RecalculatePointStatus(int pointId)
-    {
-        var point = await db.Points.FindAsync(pointId);
-        if (point is null) return;
-        var latest = await db.StatusReports.Where(r => r.PointId == pointId)
-            .OrderByDescending(r => r.CreatedAt)
-            .FirstOrDefaultAsync();
-        if (latest is null) return;
-        point.Status = latest.Status;
-        point.UpdatedAt = DateTime.UtcNow;
-        await db.SaveChangesAsync();
-    }
 
     private static void CopyEditableFields(StatusReport src, StatusReport dst)
     {
