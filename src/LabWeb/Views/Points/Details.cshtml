@@ -2,9 +2,22 @@
 @{
     ViewData["Title"] = Model.Name;
     var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var occupancy = (List<(string Label, int Value)>)ViewBag.Occupancy;
 }
 @section Head { <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" /> }
 @section Scripts {
+    @if (occupancy.Count >= 2)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script src="~/js/charts.js" asp-append-version="true"></script>
+        <script>
+            nezlamniCharts.occupancy({
+                labels: @Json.Serialize(occupancy.Select(o => o.Label)),
+                values: @Json.Serialize(occupancy.Select(o => o.Value)),
+                capacity: @Model.Capacity
+            });
+        </script>
+    }
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/point-map.js" asp-append-version="true"></script>
 }
@@ -68,6 +81,13 @@
         </div>
     </div>
 </div>
+
+@if (occupancy.Count >= 2)
+{
+    <h2 class="mt-5 mb-1">Людей у пункті</h2>
+    <p class="text-muted">За останніми звітами, місткість пункту: @Model.Capacity.</p>
+    <div class="chart-box"><canvas id="occupancyChart" role="img" aria-label="Кількість людей у пункті за останніми звітами"></canvas></div>
+}
 
 <h2 class="mt-5 mb-3">Звіти про стан</h2>
 @if (Model.Reports.Count == 0)

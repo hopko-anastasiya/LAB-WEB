@@ -1,5 +1,6 @@
 using LabWeb.Auth;
 using LabWeb.Data;
+using LabWeb.Infrastructure;
 using LabWeb.Models;
 using LabWeb.Models.ViewModels;
 using LabWeb.Services;
@@ -49,7 +50,18 @@ public class PointsController(AppDbContext db, IFileStorage files, CurrentUser c
             .Include(p => p.Reports.OrderByDescending(r => r.CreatedAt).Take(10))
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id);
-        return point is null ? NotFound() : View(point);
+        if (point is null) return NotFound();
+
+        ViewBag.Occupancy = (await db.StatusReports.AsNoTracking()
+                .Where(r => r.PointId == id)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(30)
+                .Select(r => new { r.CreatedAt, r.Occupancy })
+                .ToListAsync())
+            .OrderBy(r => r.CreatedAt)
+            .Select(r => (Label: r.CreatedAt.ToLocalString("dd.MM HH:mm"), Value: r.Occupancy))
+            .ToList();
+        return View(point);
     }
 
     [Authorize(Policy = Policies.Member)]
