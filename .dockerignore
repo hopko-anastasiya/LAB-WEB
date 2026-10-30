@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/*.user
+**/appsettings.Local.json
+**/wwwroot/uploads/
+**/.env
+.git/
+tests/
+README.md
