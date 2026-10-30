@@ -22,6 +22,103 @@ namespace LabWeb.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LabWeb.Models.AppUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ApiTokenCreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ApiTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int?>("CommunityId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("GoogleId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("PictureUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiTokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("CommunityId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("GoogleId")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("LabWeb.Models.Community", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InviteCode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InviteCode")
+                        .IsUnique();
+
+                    b.ToTable("Communities");
+                });
+
             modelBuilder.Entity("LabWeb.Models.Operator", b =>
                 {
                     b.Property<int>("Id")
@@ -29,6 +126,9 @@ namespace LabWeb.Data.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CommunityId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Email")
                         .HasMaxLength(160)
@@ -53,6 +153,8 @@ namespace LabWeb.Data.Migrations
                         .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommunityId");
 
                     b.HasIndex("Phone");
 
@@ -254,6 +356,27 @@ namespace LabWeb.Data.Migrations
                     b.ToTable("PointServices", (string)null);
                 });
 
+            modelBuilder.Entity("LabWeb.Models.AppUser", b =>
+                {
+                    b.HasOne("LabWeb.Models.Community", "Community")
+                        .WithMany("Users")
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Community");
+                });
+
+            modelBuilder.Entity("LabWeb.Models.Operator", b =>
+                {
+                    b.HasOne("LabWeb.Models.Community", "Community")
+                        .WithMany("Operators")
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Community");
+                });
+
             modelBuilder.Entity("LabWeb.Models.Point", b =>
                 {
                     b.HasOne("LabWeb.Models.Operator", "Operator")
@@ -289,6 +412,13 @@ namespace LabWeb.Data.Migrations
                         .HasForeignKey("ServicesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LabWeb.Models.Community", b =>
+                {
+                    b.Navigation("Operators");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("LabWeb.Models.Operator", b =>
