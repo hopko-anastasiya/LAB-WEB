@@ -2,6 +2,7 @@ using LabWeb.Api;
 using LabWeb.Api.Dtos;
 using LabWeb.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabWeb.Controllers.Api;
@@ -10,6 +11,7 @@ namespace LabWeb.Controllers.Api;
 public class LookupApiController(AppDbContext db) : ApiControllerBase
 {
     [HttpGet("settlements")]
+    [OutputCache(PolicyName = ApiCache.Reference)]
     public async Task<ActionResult<IReadOnlyList<SettlementDto>>> Settlements([FromQuery] LookupQuery query, CancellationToken ct)
     {
         var start = query.Q.Trim();

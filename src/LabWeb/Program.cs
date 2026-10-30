@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
+using LabWeb.Api;
 using LabWeb.Data;
 using LabWeb.Hubs;
 using LabWeb.Search;
@@ -64,6 +65,8 @@ builder.Services.AddScoped<PointStatusService>();
 builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
 builder.Services.AddSingleton<PointSearchIndex>();
 builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
+builder.Services.AddScoped<IDataChangeHandler, ApiCacheInvalidator>();
+builder.Services.AddOutputCache(ApiCache.AddPolicies);
 builder.Services.AddHostedService<SearchIndexInitializer>();
 builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 builder.Services.AddHttpClient<ITelegramApi, TelegramApi>(c => c.Timeout = TimeSpan.FromSeconds(40));
@@ -105,6 +108,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseOutputCache();
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace LabWeb.Api;
 
 [ApiController]
+[OutputCache(PolicyName = ApiCache.Data)]
 public abstract class ApiControllerBase : ControllerBase
 {
     protected string? AbsoluteUrl(string? path) =>
