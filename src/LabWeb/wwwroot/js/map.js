@@ -3,7 +3,7 @@
     const statusNames = { Working: 'Працює', Limited: 'Працює з обмеженнями', Closed: 'Не працює' };
     const points = new Map();
     const markers = new Map();
-    const filters = { statuses: new Set(['Working', 'Limited']), services: new Set() };
+    const filters = { statuses: new Set(['Working', 'Limited']), services: new Set(), found: null };
 
     const map = L.map('map', { zoomControl: false }).setView([49.2, 31.2], 6);
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
@@ -66,7 +66,9 @@
         });
     }
 
-    const visible = (p) => filters.statuses.has(p.status) && [...filters.services].every((id) => p.serviceIds.includes(id));
+    const visible = (p) => filters.statuses.has(p.status)
+        && [...filters.services].every((id) => p.serviceIds.includes(id))
+        && (!filters.found || filters.found.has(p.id));
 
     function render() {
         const shown = [...points.values()].filter(visible)
@@ -93,6 +95,9 @@
         </li>`).join('');
 
         empty.hidden = shown.length > 0 || points.size === 0;
+        empty.textContent = filters.found
+            ? 'За цим запитом пунктів немає. Спробуйте інше слово або зніміть фільтри.'
+            : 'Немає пунктів із такими послугами. Зніміть частину фільтрів.';
         const lit = shown.filter((p) => p.status === 'Working').length;
         summary.textContent = points.size === 0
             ? 'Пунктів поки немає.'
@@ -147,6 +152,29 @@
         pressed ? set.add(value) : set.delete(value);
         render();
     }));
+
+    let searchTimer;
+    let searchSeq = 0;
+    document.getElementById('mapSearch').addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        const q = e.target.value.trim();
+        searchTimer = setTimeout(() => {
+            const seq = ++searchSeq;
+            if (q.length < 2) {
+                filters.found = null;
+                render();
+                return;
+            }
+            fetch(`${cfg.searchUrl}?q=${encodeURIComponent(q)}&limit=100`)
+                .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+                .then((page) => {
+                    if (seq !== searchSeq) return;
+                    filters.found = new Set(page.items.map((p) => p.id));
+                    render();
+                })
+                .catch(() => { summary.textContent = 'Пошук зараз недоступний.'; });
+        }, 300);
+    });
 
     function load({ fit = false } = {}) {
         return fetch(cfg.pointsUrl)
