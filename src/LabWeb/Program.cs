@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using LabWeb.Data;
 using LabWeb.Hubs;
+using LabWeb.Search;
 using LabWeb.Services;
 using LabWeb.Telegram;
 using Microsoft.AspNetCore.Localization;
@@ -61,6 +62,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<PointStatusService>();
 builder.Services.AddScoped<IDataChangeHandler, PointsBroadcaster>();
+builder.Services.AddSingleton<PointSearchIndex>();
+builder.Services.AddScoped<IDataChangeHandler, SearchIndexUpdater>();
+builder.Services.AddHostedService<SearchIndexInitializer>();
 builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 builder.Services.AddHttpClient<ITelegramApi, TelegramApi>(c => c.Timeout = TimeSpan.FromSeconds(40));
 builder.Services.AddSingleton<BotSessions>();
