@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Community> Communities => Set<Community>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<BoardItem> BoardItems => Set<BoardItem>();
+    public DbSet<GuideBlock> GuideBlocks => Set<GuideBlock>();
     public DbSet<PointSubscription> PointSubscriptions => Set<PointSubscription>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
@@ -93,6 +94,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Point).WithMany().HasForeignKey(x => x.PointId).OnDelete(DeleteBehavior.SetNull);
             e.HasIndex(x => new { x.UserId, x.EventId }).IsUnique();
             e.HasIndex(x => new { x.UserId, x.ReadAt });
+        });
+
+        b.Entity<GuideBlock>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Type).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Text).HasMaxLength(5000);
+            e.HasOne(x => x.Community).WithMany().HasForeignKey(x => x.CommunityId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => new { x.CommunityId, x.Position });
         });
 
         b.Entity<BoardItem>(e =>
