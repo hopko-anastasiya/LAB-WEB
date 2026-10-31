@@ -61,7 +61,7 @@
         wait.textContent = 'Думаю…';
         turn.append(steps, body, wait);
         log.append(turn);
-        return { turn, steps, list, body, wait, text: '', lastThought: null, failed: false };
+        return { turn, steps, list, body, wait, text: '', failed: false };
     }
 
     function addStep(ui, className, text) {
@@ -75,12 +75,7 @@
 
     function handleEvent(ui, type, data) {
         switch (type) {
-            case 'thought':
-                if (!ui.lastThought) ui.lastThought = addStep(ui, 'step-thought', '');
-                ui.lastThought.textContent += data.text;
-                break;
             case 'tool_call': {
-                ui.lastThought = null;
                 const args = describeArgs(data.args);
                 ui.pending = addStep(ui, 'step-tool', `${toolNames[data.name] ?? data.name}${args ? `: ${args}` : ''}`);
                 break;
@@ -93,7 +88,6 @@
                 }
                 break;
             case 'text':
-                ui.lastThought = null;
                 ui.text += data.text;
                 ui.body.innerHTML = format(ui.text);
                 break;

@@ -8,7 +8,7 @@ namespace LabWeb.Assistant;
 public class GeminiOptions
 {
     public string? ApiKey { get; set; }
-    public string Model { get; set; } = "gemini-2.5-flash";
+    public string Model { get; set; } = "gemini-3.5-flash-lite";
 
     public bool Enabled => !string.IsNullOrWhiteSpace(ApiKey);
 }
