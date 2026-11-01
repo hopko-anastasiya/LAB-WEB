@@ -24,8 +24,9 @@
     function format(text) {
         return escapeHtml(text)
             .replace(/\[([^\]]+)\]\((\/punkt\/\d+)\)/g, '<a href="$2">$1</a>')
-            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
             .replace(/^\s*[-*]\s+/gm, '• ')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(\S[^*\n]*?)\*/g, '<em>$1</em>')
             .replace(/\n/g, '<br>');
     }
 
