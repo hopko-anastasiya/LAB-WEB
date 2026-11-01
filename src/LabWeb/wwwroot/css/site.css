@@ -917,3 +917,59 @@ input[type=file].is-dragging { border-color: var(--lamp); box-shadow: 0 0 0 .2re
 }
 .game-overlay[hidden] { display: none; }
 .game-overlay p { max-width: 44ch; margin: 0; }
+
+.guide { max-width: 46rem; margin: 0 auto; }
+.guide-state { margin: 0; color: var(--ink-muted); font-size: .85rem; }
+.guide-help { color: var(--ink-muted); font-size: .85rem; }
+.guide-help code { color: var(--ink); }
+.guide-doc { display: grid; gap: .1rem; }
+.guide-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.6rem minmax(0, 1fr);
+    align-items: start;
+    border-radius: .35rem;
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+}
+.guide-row.drop-before { border-top-color: var(--lamp); }
+.guide-row.drop-after { border-bottom-color: var(--lamp); }
+.guide-row.is-dragging { opacity: .4; }
+.guide-row.is-edited { box-shadow: inset 2px 0 0 var(--ember); }
+.guide-handle {
+    padding: .3rem 0;
+    border: 0;
+    background: none;
+    color: var(--unlit);
+    cursor: grab;
+    opacity: 0;
+}
+.guide-row:hover .guide-handle, .guide-handle:focus-visible { opacity: 1; }
+.guide-text { min-height: 1.9rem; padding: .2rem .35rem; border-radius: .25rem; white-space: pre-wrap; overflow-wrap: anywhere; outline: none; }
+.guide-text:focus { background: rgba(255, 255, 255, .03); }
+.guide-text:empty::before { content: attr(data-placeholder); color: var(--unlit); }
+.type-heading .guide-text { font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; }
+.type-bullet .guide-text { position: relative; padding-left: 1.3rem; }
+.type-bullet .guide-text::after { content: ""; position: absolute; left: .45rem; top: .85em; width: .35rem; height: .35rem; border-radius: 50%; background: var(--lamp); }
+.guide-who {
+    position: absolute;
+    top: -.15rem;
+    right: 0;
+    padding: 0 .4rem;
+    border-radius: .25rem;
+    background: var(--ember);
+    color: #1a1a1a;
+    font-size: .7rem;
+}
+.guide-who[hidden] { display: none; }
+@media (hover: none) {
+    .guide-handle { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .just-changed { animation: guide-flash 1.1s ease-out; }
+    .just-added { animation: guide-flash 1.1s ease-out; }
+    .just-moved { animation: guide-flash 1.1s ease-out; }
+    @keyframes guide-flash {
+        from { background: var(--lamp-soft); }
+    }
+}
